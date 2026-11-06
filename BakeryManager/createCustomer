@@ -1,0 +1,15 @@
+// These fields/and method belong inside CustomerManager.java.
+// Requires Customer.setCustomerID(int).
+
+private Customer[] customers = new Customer[100];
+private int customerCount = 0;
+
+public void createCustomer(Customer customer) {
+    if (customerCount == customers.length) {
+        throw new IllegalStateException("Customer list is full.");
+    }
+
+    customer.setCustomerID(customerCount + 1);
+    customers[customerCount] = customer;
+    customerCount++;
+}
