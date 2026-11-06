@@ -1,0 +1,14 @@
+public void orderPriority()  // Process each order in priority order
+{
+    order.sort((a,b) -> a.getSubmissionTime().compareTo(b.getSubmissionTime()));
+
+    for(Order order : orders)
+    {
+        if(!order.isCompleted())
+        {
+            System.out.println(order);
+            System.out.println();
+        }
+       
+    }
+}
