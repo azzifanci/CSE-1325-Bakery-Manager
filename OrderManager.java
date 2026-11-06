@@ -5,8 +5,40 @@ public class OrderManager {
     Order[] orderHistory;
 
     //createOrder()
-        //When a order is created, move it to an array called activeOrders 
+	private int orderCount = 0;
+	private int activeOrdersCount = 0;
+	private int nextOrderId = 1;
 
+	public Order createOrder(int customerID, Items[] items, int[] quantity, boolean isDelivery) {
+		//checks if the item and quantities are valid
+		if(items == null || quantity == null || items.length == 0 || items.length != quantity.length) {
+			throw new IllegalArgumentException("Invalid order information");
+		}
+		//check each item and quantites
+		for(int i = 0; i < quantity.length; i++) {
+			if(items[i] == null || quantity[i] <= 0) {
+				throw new IllegalArgumentException ("Invalid item or quantity");
+			}
+		}
+		if(orderCount >= orders.length || activeOrdersCount >= activeOrders.length) {
+			throw new IllegalStateException ("Order storage is full");
+		}
+		int orderID = nextOrderId++;
+		
+		boolean isCompleted = false;
+		LocalDateTime submissionTime = LocalDataTime();
+		
+		Order newOrder = new Order(orderID, customerID, items, quantity, isDelivery, isCompleted, submissionTime);
+		
+		orders[orderCount] = newOrder;
+		orderCount++;
+		
+		activeOrders[activeOrdersCount] = newOrder;
+		
+		return newOrder;
+	
+	}
+}
     //cancelOrder()
     public boolean cancelOrder(int orderID)
     {
