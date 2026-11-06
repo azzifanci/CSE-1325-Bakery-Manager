@@ -8,11 +8,20 @@ public class Customer
 
     public Customer(int customerID, String name, String address, String phoneNumber, String emailAddress)
     {
-        this.setCustomerID(customerID);
+        this.customerID= customerID;
         this.setName(name);
         this.setAddress(address);
         this.setPhoneNumber(phoneNumber);
         this.setEmailAddress(emailAddress);
+    }
+
+    public Customer()
+    {
+        this.customerID= getCustomerID();
+        this.name= getName();
+        this.address= getAddress();
+        this.phoneNumber= getPhoneNumber();
+        this.emailAddress= getEmailAddress();
     }
     public int getCustomerID()
     {
