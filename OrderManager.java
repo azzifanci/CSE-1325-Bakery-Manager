@@ -78,6 +78,36 @@ public class OrderManager {
         
     
     //trackOrder()
+    public void trackOrder(int orderID) {
+	
+	//check if order exists
+	boolean found = false;
+	
+	//search through all orders
+	for(Order order : orders) {
+	
+		//check if order ID matches
+		if(order.getOrderID() == orderID) {
+	
+			found = true;
+		
+			//check if the order is completed
+			if(order.isCompleted()) {
+				System.out.println("Order " + orderID + " is completed.");
+			} else {
+				System.out.println("Order " + orderID + " is not completed.");
+			}
+		
+			//stop searching once the order is found
+			break;
+		}
+	}
+	
+	//Display message if order was not found
+	if(!found) {
+		System.out.println("Order " + orderID + " was not found.");
+	}
+}
 
     //orderPriority()
     public void orderPriority()  // Process each order in priority order
