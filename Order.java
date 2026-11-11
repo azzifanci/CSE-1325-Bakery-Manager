@@ -23,7 +23,7 @@ public class Order {
     }
 
     //Accessors
-    public int getOrderId()
+    public int getOrderID()
     {
         return this.orderID;
     }
