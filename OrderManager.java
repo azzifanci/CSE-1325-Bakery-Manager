@@ -16,7 +16,6 @@ public class OrderManager {
                 throw new IllegalArgumentException ("Invalid item or quantity");
             }
         }
-       
         int orderID = nextOrderID;
         nextOrderID++;
 
@@ -27,17 +26,16 @@ public class OrderManager {
 
     }
 //cancelOrder()
-public boolean cancelOrder(int orderID)
+public void cancelOrder(int orderID)
 {
    Order order = findOrderIDs(orderID);
-   if(order == null || order.isCompleted()) 
+   if(order == null) 
     {
-        return false;
+        throw new IllegalArgumentException("Order " + orderID + "not found.");
     }
 
     order.setIsCompleted(true);
     activeOrders.remove(order);
-    return true;
 }
 
 //updateOrder()
@@ -45,38 +43,37 @@ public boolean cancelOrder(int orderID)
     // In the GUI I assume it would be one button that says updateOrder then show the following options
     // Updates the delivery status of an order by its ID.
 
-public boolean updateOrderDelivery(int orderID, boolean newDeliveryStatus)
+    //Instead of returning false, let's return an exception
+
+public void updateOrderDelivery(int orderID, boolean newDeliveryStatus)
 {
     Order order = findOrderIDs(orderID);
-    if (order == null)
+   if(order == null) 
     {
-        return false; // Order not found
+        throw new IllegalArgumentException("Order " + orderID + "not found.");
     }
     order.setIsDelivery(newDeliveryStatus);
-    return true;
 }
 // Updates the completion status of an order by its ID.
-public boolean updateOrderCompletion(int orderID, boolean newCompletionStatus)
+public void updateOrderCompletion(int orderID, boolean newCompletionStatus)
 {
     Order order = findOrderIDs(orderID);
-    if (order == null)
+    if(order == null) 
     {
-        return false;
+        throw new IllegalArgumentException("Order " + orderID + "not found.");
     }
     order.setIsCompleted(newCompletionStatus);
-    return true;
 }
 //Updates the items and quantities for an order by its ID.
-public boolean updateOrderItems(int orderID, Items[] newItems, int[] newQuantities)
+public void updateOrderItems(int orderID, Items[] newItems, int[] newQuantities)
 {
     Order order = findOrderIDs(orderID);
-    if (order == null)
+    if(order == null) 
     {
-        return false;
+        throw new IllegalArgumentException("Order " + orderID + "not found.");
     }
     order.setItems(newItems);
     order.setQuantity(newQuantities);
-    return true;
 }
 
 //trackOrder()
@@ -85,8 +82,9 @@ public void trackOrder(int orderID) {
     Order order = findOrderIDs(orderID);
 
     //Order Not Found 
-    if(order == null){
-        System.out.println("Order " + orderID + "was not found");
+   if(order == null) 
+    {
+        throw new IllegalArgumentException("Order " + orderID + "not found.");
     }
 
     //Displays message where order is completed or not
