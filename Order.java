@@ -59,19 +59,19 @@ public class Order {
 
     //Combine setItems and setQuantities to ensure that the size of arrays match 
     //and each item has a valid quantity
-    public void setItemsAndQuantities(Items[] item, int[] quantites)
+    public void setItemsAndQuantities(Items[] item, int[] quantities)
     {
         if(item == null || item.length == 0)
         {
             throw new IllegalArgumentException("Order must have at least one item.");
         }
 
-        if(quantites == null || quantites.length == 0)
+        if(quantities == null || quantities.length == 0)
         {
             throw new IllegalArgumentException("A valid order must have item with at least one quantity.");
         }
 
-        if(item.length != quantites.length)
+        if(item.length != quantities.length)
         {
             throw new IllegalArgumentException("Each item must have a valid quantity.");
         }
@@ -82,14 +82,14 @@ public class Order {
             {
                 throw new IllegalArgumentException("Item cannot be null.");
             }
-            if(quantites[i] <= 0)
+            if(quantities[i] <= 0)
             {
                 throw new IllegalArgumentException("Quantity must be greater than 0");
             }
         }
 
         this.items = item;
-        this.quantity = quantites;
+        this.quantity = quantities;
     }
 
     public void setIsDelivery(boolean aD)
