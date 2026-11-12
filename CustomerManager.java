@@ -2,25 +2,20 @@ public class CustomerManager
 {
     private GenLL <Customer> customers = new GenLL <> ();
     private int nextCustomerID = 1;
-    private OrderManager orderManager;
 
     //createCustomer 
-    public Customer createCustomer(int customerID, String name, String emailAddress, String phoneNumber, String address)
+    public Customer createCustomer(String name, String emailAddress, String phoneNumber, String address)
     {
         //Exception when field is null or contains 0 characters 
-        if(customerID == 0)
-        {
-            throw new IllegalArgumentException("CustomerID is missing.");
-        }
-        if(name.isBlank() || name == null)
+        if(name == null || name.isBlank())
         {
             throw new IllegalArgumentException("Customer name is required.");
         }
-        if(emailAddress.isBlank() || emailAddress == null)
+        if(emailAddress == null || emailAddress.isBlank())
         {
             throw new IllegalArgumentException("Email address is required.");
         }
-        if(phoneNumber.isBlank() || phoneNumber == null)
+        if(phoneNumber == null || phoneNumber.isBlank())
         {
             throw new IllegalArgumentException(" Phone number is required.");
         }
@@ -34,8 +29,8 @@ public class CustomerManager
             }
         }
 
-
-        customerID = nextCustomerID;
+        //Don't need to pass customerID as parameter because we are generating customerID
+        int customerID = nextCustomerID;
         nextCustomerID++;
 
         Customer newCustomer = new Customer(customerID, name, address, phoneNumber, emailAddress);
@@ -43,21 +38,59 @@ public class CustomerManager
         return newCustomer;
     }
 
-    //Need to update based on linked list change 
-    //sendUpdate
-    //public void sendUpdate( Customer aCustomer)
-    //{
-    //    if(OrderManager.updateOrderCompletion)
-    //    {
-     //       if(Order.isDelivery)
-     //       {
-       //         System.out.println("Order is on the move.");
-       //     }else{
-         //       System.out.println("Order is awaiting pick up");
-           // }
-        //}else{
-         //   System.out.println("Order is still underway");
-         //   return;
-      //  }
-   // }
+    //Linked List sendUpdate
+        //Only sends notification when order is completed 
+    public void sendUpdate(Order order)
+    {
+        if(order == null)
+        {
+            throw new IllegalArgumentException("Order not found.");
+        }
+
+        if(!order.isCompleted())
+        {
+            throw new IllegalArgumentException("Order is not completed");
+        }
+
+        //Links order's customerID to actual customer 
+        Customer customer = findCustomerIDs(order.getCustomerID());
+
+         if(customer == null)
+        {
+            throw new IllegalArgumentException("Customer not found.");
+        }
+
+        String message = "Notification: Dear Customer " + customer.getName() +
+            " (" + customer.getCustomerID() + "), ";
+
+
+        if(order.isCompleted())
+        {
+            if(order.isDelivery())
+            {
+                System.out.println(message + "your order is being delivered."); 
+            }
+            else
+            {
+                System.out.println(message + "your order is awaiting pick up.");
+            }
+        }
+    }
+
+
+    //findCustomerID
+    // Searches OrderIDs 
+    public Customer findCustomerIDs(int customerID)
+    {
+        for (int i = 0; i < customers.getSize(); i++)
+        {
+            Customer current = customers.get(i);
+            if (current.getCustomerID() == customerID)
+            {
+                return current;
+            }
+        }
+        return null;
+    }
+
 }

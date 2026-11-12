@@ -44,40 +44,49 @@ public class Customer
         return this.emailAddress;
     }
 
+    //Fixed the setters so will throw an exception rather than have a customer with no information
     public void setName(String aName)
     {
-        if(aName !=null)
+        if(aName == null || aName.isBlank())
         {
-            this.name= aName;
-        }else {
-            this.name= "none";
+            throw new IllegalArgumentException("Customer name is required.");
+        }
+        else
+        {
+            this.name = aName;
         }
     }
     public void setAddress(String aAddress)
     {
-        if(aAddress != null)
+        if(aAddress == null || aAddress.isBlank())
+        {
+            throw new IllegalArgumentException("Address is required.");
+        }
+        else
         {
             this.address = aAddress;
-        }else{
-            this.address= "Store address: 1234 Berry Lane, Arlington.";
         }
     }
     public void setPhoneNumber(String aPhoneNumber)
     {
-        if(aPhoneNumber !=null)
+        if(aPhoneNumber == null || aPhoneNumber.isBlank())
+        {
+            throw new IllegalArgumentException("Phone number is required.");
+        }
+        else
         {
             this.phoneNumber = aPhoneNumber;
-        }else {
-            this.phoneNumber= "None";
         }
     }
     public void setEmailAddress(String aEmailAddress)
     {
-        if(aEmailAddress !=null)
+        if(aEmailAddress == null || aEmailAddress.isBlank())
+        {
+            throw new IllegalArgumentException("Email address is required.");
+        }
+        else
         {
             this.emailAddress = aEmailAddress;
-        }else {
-            this.emailAddress= "None";
         }
     }
 

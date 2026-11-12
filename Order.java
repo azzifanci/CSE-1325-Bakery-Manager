@@ -10,13 +10,11 @@ public class Order {
     private LocalDateTime submissionTime;
 
     //Parameterized Constructor
-    public Order(int orderID, int customerID, Items[] items,
-                 int[] quantity, boolean isCompleted, boolean isDelivery, LocalDateTime submissionTime)
+    public Order(int orderID, int customerID, Items[] items, int[] quantity, boolean isCompleted, boolean isDelivery, LocalDateTime submissionTime)
     {
         this.orderID = orderID;
         this.orderCustomerID = customerID;
-        this.setItems(items);
-        this.setQuantity(quantity);
+        this.setItemsAndQuantities(items, quantity);
         this.setIsDelivery(isDelivery);
         this.setIsCompleted(isCompleted);
         this.submissionTime= submissionTime;
@@ -58,40 +56,40 @@ public class Order {
     }
 
     //Setters
-    public void setItems(Items[] item)
+
+    //Combine setItems and setQuantities to ensure that the size of arrays match 
+    //and each item has a valid quantity
+    public void setItemsAndQuantities(Items[] item, int[] quantites)
     {
-        if(items == null || items.length == 0)
+        if(item == null || item.length == 0)
         {
-            //Need
+            throw new IllegalArgumentException("Order must have at least one item.");
         }
 
-        for(int i = 0; i < items.length; i++)
+        if(quantites == null || quantites.length == 0)
         {
-            if(items[i] == null)
+            throw new IllegalArgumentException("A valid order must have item with at least one quantity.");
+        }
+
+        if(item.length != quantites.length)
+        {
+            throw new IllegalArgumentException("Each item must have a valid quantity.");
+        }
+
+        for(int i = 0; i < item.length; i++)
+        {
+            if(item[i] == null)
             {
-                //Needs Exception
+                throw new IllegalArgumentException("Item cannot be null.");
+            }
+            if(quantites[i] <= 0)
+            {
+                throw new IllegalArgumentException("Quantity must be greater than 0");
             }
         }
 
         this.items = item;
-    }
-
-    public void setQuantity(int[] quantity)
-    {
-        if(quantity == null || quantity.length == 0)
-        {
-            //Needs Exception
-        }
-
-        for(int i = 0; i < quantity.length; i++)
-        {
-            if(quantity[i] <= 0)
-            {
-                //Needs Exception
-            }
-        }
-
-        this.quantity = quantity;
+        this.quantity = quantites;
     }
 
     public void setIsDelivery(boolean aD)
