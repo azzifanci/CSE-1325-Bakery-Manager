@@ -12,8 +12,9 @@ public class BakeryManagementFE_GUI {
 private static CustomerManager customerManager = new CustomerManager();
 private static OrderManager orderManager = new OrderManager();
 
-//Need to work on input and output 
-//private static File currentDataFile = new File("orders.txt")
+//input and output
+private static File currentDataFile = new File("orders.txt");
+
         
 private static JPanel mainPanel = new JPanel(cardLayout);
 private static CardLayout cardLayout = new CardLayout();
@@ -38,9 +39,15 @@ public static void main(String[] args) {
 
         JMenu fileMenu = new JMenu("File");
         JMenu helpMenu = new JMenu("Help");
-
+       
+        JMenuItem loadMenuItem = new JMenuItem("Load From File");
+        JMenuItem saveAsMenuItem = new JMenuItem("Save As File");
         JMenuItem exitMenuItem = new JMenuItem("Exit");
         JMenuItem aboutMenuItem = new JMenuItem("About");
+        
+        // Add Action Listeners for File I/O
+        loadMenuItem.addActionListener(e -> loadFromFile(frame));
+        saveAsMenuItem.addActionListener(e -> saveAsFile(frame));
 
         exitMenuItem.addActionListener(new ActionListener())
                 {
@@ -57,13 +64,19 @@ public static void main(String[] args) {
                         JOptionPane.showMessageDialog(frame, "Bakery Management System");
                 }
         }
-        
+        // Assemble File Menu
+        fileMenu.add(loadMenuItem);
+        fileMenu.add(saveAsMenuItem);
+        fileMenu.addSeparator();
+        fileMenu.add(exitMenuItem);
+
+        helpMenu.add(aboutMenuItem);
                                 
 
         menuBar.add(fileMenu);
         menuBar.add(helpMenu);
 
-        fileMenu.add(exitMenuItem);
+        
         helpMenu.add(aboutMenuItem);
 
         frame.setJMenuBar(menuBar);
@@ -150,7 +163,48 @@ private static JPanel createMainMenuPanel()
         return menuPanel;
 }
 
+//Input File (load)
+private static void loadFromFile(JFrame frame) 
+{
+    JFileChooser chooser = new JFileChooser();
+    int choice = chooser.showOpenDialog(frame);
 
+    if (choice == JFileChooser.APPROVE_OPTION) 
+    {
+        File selectedFile = chooser.getSelectedFile();
+        try 
+                {
+            orderManager.loadFromFile(selectedFile.getAbsolutePath());
+            currentDataFile = selectedFile;
+            JOptionPane.showMessageDialog(frame, "Successfully loaded from " + currentDataFile.getName(), "Success", JOptionPane.INFORMATION_MESSAGE);
+            // Refresh your table views here if applicable
+                } catch (FileNotFoundException e) 
+                {
+            JOptionPane.showMessageDialog(frame, "File not found: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                }
+    }
+}
+//File output (save as)
+private static void saveAsFile(JFrame frame) 
+{
+    JFileChooser chooser = new JFileChooser();
+    int choice = chooser.showSaveDialog(frame);
+
+    if (choice == JFileChooser.APPROVE_OPTION) 
+    {
+        File selectedFile = chooser.getSelectedFile();
+        try 
+                {
+            orderManager.saveToFile(selectedFile.getAbsolutePath());
+            currentDataFile = selectedFile;
+            JOptionPane.showMessageDialog(frame, "Successfully saved as " + currentDataFile.getName(), "Success", JOptionPane.INFORMATION_MESSAGE);
+                } 
+        catch (FileNotFoundException e) 
+                {
+            JOptionPane.showMessageDialog(frame, "Error saving file: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                }
+    }
+}
         //Create ordeer screen with customer selection
 
 
