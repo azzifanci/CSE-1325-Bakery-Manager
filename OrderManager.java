@@ -1,4 +1,8 @@
 import java.time.LocalDateTime;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
+import java.util.Scanner;
 
 public class OrderManager {
     private GenLL <Order> orders = new GenLL <>();
@@ -179,5 +183,68 @@ public boolean isCanceled(int orderID)
 
     return false;
 }
+//File output save order to file
+    public void saveToFile(String filepath) throws FileNotFoundException 
+    {
+    PrintWriter writer = new PrintWriter(new File(filepath));
+    
+    // Loop through all orders 
+    for (int i = 0; i < orders.getSize(); i++) 
+    {
+        Order order = orders.get(i);
+        
+        // Write order data comma-separated to the text file
+        writer.println(order.getOrderID() + "," + 
+                       order.getCustomerId() + "," + 
+                       order.isDelivery() + "," + 
+                       order.isCompleted());
+    }
+    writer.close();
+}
+    //File input load Orders form file
+    public void loadFromFile(String filepath) throws FileNotFoundException 
+    {
+    Scanner scanner = new Scanner(new File(filepath));
+    
+    // Clear out old lists so loading a new file starts fresh
+    orders = new GenLL<>();
+    activeOrders = new GenLL<>();
+    canceledOrders = new GenLL<>();
+    
+    int maxID = 0;
 
+    while (scanner.hasNextLine()) 
+    {
+        String line = scanner.nextLine();
+        String[] parts = line.split(",");
+        
+        if (parts.length >= 4) 
+        {
+            int orderID = Integer.parseInt(parts[0]);
+            int customerID = Integer.parseInt(parts[1]);
+            boolean isDelivery = Boolean.parseBoolean(parts[2]);
+            boolean isCompleted = Boolean.parseBoolean(parts[3]);
+            
+            // Track the highest ID so nextOrderID doesn't cause duplicates
+            if (orderID > maxID) 
+            {
+                maxID = orderID;
+            }
+            
+            // Re-create the order object with loaded data
+            Order loadedOrder = new Order(orderID, customerID, null, null, isCompleted, isDelivery, LocalDateTime.now());
+            
+            orders.add(loadedOrder);
+            if (!isCompleted) 
+            {
+                activeOrders.add(loadedOrder);
+            }
+        }
+    }
+    scanner.close();
+    
+    // Keep order ID generation synced up
+    nextOrderID = maxID + 1;
+    }
+    
 }
