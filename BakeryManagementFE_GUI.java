@@ -123,7 +123,7 @@ private static JPanel createMainMenuPanel()
 {
         Jpanel menuPanel = new JPanel(new BorderLayout(20, 20));
         //add borders
-        
+        menuPanel.setBorder(BorderFactory.createEmptyBorder(30, 180, 50, 180));
 
         JLabel title = new JLabel("Bakery Management System", JLabel.CENTER);
         title.setFont(new Font("Arial", Font.BOLD, 25));
@@ -134,21 +134,28 @@ private static JPanel createMainMenuPanel()
 
         JButton createOrderButton = new JButton("Create Order");
         //add
+        createOrderButton.setBackground(Color.GREEN);
         
         JButton customerButton = new JButton("Customer Management");
         //add
+        customerButton.setBackground(Color.PINK);
         
         JButton orderButton = new JButton("Order Management");
         //add
+        orderButton.setBackground(Color.CYAN);
         
         JButton priorityButton = new JButton("Order Priority");
         //add
+        priorityButton.setBackground(Color.ORANGE);
         
         JButton historyButton = new JButton("Order History");
         //add
-
+        historyButton.setBackground(Color.YELLOW);
 
         //Action listeners for each button.
+        createOrderButton.addActionListener(new ActionListener()
+        {
+                public void actionPerformed(Action
         
 
         menuButtons.add(createOrderButton);
