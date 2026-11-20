@@ -1,604 +1,470 @@
 import javax.swing.*;
-import java.awt.*;
-import java.awt.event.ActionListener;
-import java.awt.event.ActionEvent;
-import java.util.Arrays;
-import java.io.File;
-import java.io.FileNotFoundException;
-//import java.swing.table.DefaultTableModel;
-
-//!not yet completed!
+import javax.swing.border.TitledBorder;
+import java.awt.Font;
+import java.awt.GridLayout;
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
 
 public class BakeryManagementFE_GUI {
 
-private static CustomerManager customerManager = new CustomerManager();
-private static OrderManager orderManager = new OrderManager(customerManager);
+    //POTENTIAL GUI (IDEA)
+    //TOOK FROM MEAGAN GUI + COMBINE
 
-private static File currentDataFile = new File("orders.txt"); //Input + ouput file
-private static CardLayout cardLayout = new CardLayout();
-private static JPanel mainPanel = new JPanel(cardLayout);
-private static DefaultTableModel orderTableModel;
-private static DefaultTableModel priorityTableModel;
-private static DefaultTableModel customerTableModel;
-private static DefaultTableModel historyTableModel;
+    //Attributes
+    private static CustomerManager customerManager = new CustomerManager();
+    private static OrderManager orderManager = new OrderManager(customerManager);
 
+    private static JFrame frame;
 
-public static void main(String[] args) {
-     
+    //Display
+    private static JTextArea displayArea;
+    private static JLabel statusLabel;
+
+    //Print
+    private static PrintStream originalOut = System.out;
+    private static ByteArrayOutputStream output;
+
+    public static void main(String[] args) {
         // JFrame
-        JFrame frame = new JFrame("Bakery Management System");
-        frame.setSize(900, 600);
+        frame = new JFrame("Bakery Management System");
+        frame.setSize(1000, 1000);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setLayout(null);
 
+    // =========================================================
+    // Button Panel
+    // =========================================================   
+        JPanel buttonPanel = new JPanel(new GridLayout (6, 2, 8, 8));
+        buttonPanel.setBounds(10, 10, 300, 950);
+        buttonPanel.setBorder(new TitledBorder("Menu: "));
+        frame.add(buttonPanel);
 
-        // Menu Bar 
-        JMenuBar menuBar = new JMenuBar();
-        JMenu fileMenu = new JMenu("File");
-        JMenuItem loadMenuItem = new JMenuItem("Load From File");
-        JMenuItem saveAsMenuItem = new JMenuItem("Save As File");
-        JMenuItem exitMenuItem = new JMenuItem("Exit");
-        
-
-        // Assemble File Menu 
-        fileMenu.add(loadMenuItem);
-        fileMenu.add(saveAsMenuItem);
-        fileMenu.addSeparator();
-        fileMenu.add(exitMenuItem);             
-        menuBar.add(fileMenu);
-        frame.setJMenuBar(menuBar);
-
-        
-        // Card Layout
-            //When a user clicks a button, it takes them to that certain window rather than all windows at once.
-        mainPanel.add(createMainMenuPanel(), "Main Menu");
-        mainPanel.add(createOrderScreen(), "Create Order");
-        mainPanel.add(createCustomerScreen(), "Customer Management");
-        mainPanel.add(createOrderManagementScreen(), "Order Management");
-        mainPanel.add(createPriorityScreen(), "Order Priority");
-        mainPanel.add(createHistoryScreen(), "Order History");
-
-        frame.add(mainPanel);
-        frame.setVisible(true);
-
-        // Add Action Listeners for File I/O
-        loadMenuItem.addActionListener(e -> loadFromFile(frame));
-        saveAsMenuItem.addActionListener(e -> saveAsFile(frame));
-        exitMenuItem.addActionListener(e -> System.exit(0));
-}
-
-//Helper for back button
-private static JPanel makeHeader(String titleText)
-{
-        JPanel header = new JPanel(new BorderLayout());
-        JButton backButton = new JButton("Back to Main Menu");
-        backButton.setBackground(Color.RED);
-        backButton.setForeground(Color.WHITE);
-        backButton.addActionListener(e -> cardLayout.show(mainPanel, "Main Menu"));
-
-        
-        JLabel title = new JLabel (titleText, JLabel.CENTER);
-        title.setFont(new Font("Arial", Font.BOLD, 20));
-
-        header.add(backButton, BorderLayout.WEST);
-        header.add(title, BorderLayout.CENTER);
-        return header;
-}
-
-//Main Menu Panel              
-private static JPanel createMainMenuPanel()
-{
-        JPanel menuPanel = new JPanel(new BorderLayout(20, 20));
-        
-        //Add Borders 
-        menuPanel.setBorder(BorderFactory.createEmptyBorder(30, 180, 50, 180));
-
-        JLabel title = new JLabel("Bakery Management System", JLabel.CENTER);
-        title.setFont(new Font("Inter", Font.BOLD, 25));
-
-        //Menu Buttons with Colors 
-        JPanel menuButtons = new JPanel(new GridLayout(5, 1, 15, 15));
-
-        JButton createOrderButton = new JButton("Create Order");
-        createOrderButton.setBackground(Color.GREEN);
-        
-        JButton customerButton = new JButton("Customer Management");
-        customerButton.setBackground(Color.PINK);
-        
-        JButton orderButton = new JButton("Order Management");
-        orderButton.setBackground(Color.CYAN);
-        
-        JButton priorityButton = new JButton("Order Priority");
-        priorityButton.setBackground(Color.ORANGE);
-        
+        JButton orderButton = new JButton("Create Order");
+        JButton cancelButton = new JButton("Cancel Order");
+        JButton updateButton = new JButton("Update Order");
+        //JButton completeButton = new JButton("Mark Order Completed");
+        JButton trackButton = new JButton("Track Order");
+        JButton priorityButton = new JButton("Order Priority List");
         JButton historyButton = new JButton("Order History");
-        historyButton.setBackground(Color.YELLOW);
-
-        //Action listeners for each button. 
+        //JButton findOrderButton = new JButton("Find Order ID");
+        //JButton findCanceledButton = new JButton("Find Canceled Order");
+        JButton customerButton = new JButton("Create Customer");
+        JButton sendUpdateButton = new JButton("Send Update");
+        //JButton findCustomerIDButton = new JButton("Find Customer ID");
         
-        //createOrderAction Listener
+        buttonPanel.add(orderButton);
+        buttonPanel.add(cancelButton);
+        buttonPanel.add(updateButton);
+        //buttonPanel.add(completeButton);
+        buttonPanel.add(customerButton);
+        buttonPanel.add(trackButton);
+        buttonPanel.add(priorityButton);
+        buttonPanel.add(historyButton);
+        //buttonPanel.add(findOrderButton);
+        //buttonPanel.add(findCanceledButton);
+        buttonPanel.add(sendUpdateButton);
+        //buttonPanel.add(findCustomerIDButton);
 
-        //customerManagement Action Listener
-        customerButton.addActionListener(e -> cardLayout.show(mainPanel, "Customer Management"));
-        //orderManagement Action Listener 
+    // =========================================================
+    // Results Panel
+    // =========================================================   
+        JPanel displayPanel = new JPanel(null);
+        displayPanel.setBounds(320, 10, 660, 950);
+        displayPanel.setBorder(new TitledBorder ("Results"));
+        frame.add(displayPanel);
 
-        //Order Priority action listener (Meagan)
-        priorityButton.addActionListener(e -> refreshOrderTable());
-        cardLayout.show(mainPanel, "Order Management");
+        displayArea = new JTextArea();
+        displayArea.setEditable(false);
+        displayArea.setLineWrap(true);
+        displayArea.setWrapStyleWord(true);
+        displayArea.setFont(new Font("Inter", Font.PLAIN, 14));
         
-        
-        //Add menu buttons                       
-        //Add createOrderButton for menu
-        //Add customerButton for menu
-        menuButtons.add(customerButton);
-        // Add orderButton for menu
-        
-        menuButtons.add(priorityButton); //Meagan
-        //Add historyButton for menu
+        JScrollPane scrollPane = new JScrollPane(displayArea);
+        scrollPane.setBounds(15, 25, 630, 880);
+        displayPanel.add(scrollPane);
 
-        
-        menuPanel.add(title, BorderLayout.NORTH);
-        menuPanel.add(menuButtons, BorderLayout.CENTER);
-        return menuPanel;
-}
+        statusLabel = new JLabel("Status: Ready");
+        statusLabel.setBounds(15, 915, 630, 25);
+        displayPanel.add(statusLabel);
 
-//Input File (load)
-private static void loadFromFile(JFrame frame) 
-{
-    JFileChooser chooser = new JFileChooser();
-    int choice = chooser.showOpenDialog(frame);
+    // =========================================================
+    // Event Listeners
+    // =========================================================  
+        orderButton.addActionListener(e -> openOrderWindow());
+        cancelButton.addActionListener(e -> cancelOrder());
+        updateButton.addActionListener(e-> updateOrderWindow());
+        customerButton.addActionListener(e -> openCustomerWindow(null));
+        trackButton.addActionListener(e-> trackOrder());
+        priorityButton.addActionListener(e-> showPriority());
+        historyButton.addActionListener(e-> showHistory());
+        //findOrderButton.addActionListener(e-> findOrder());
+        //findCanceledButton.addActionListener(e-> findCanceled());
+        sendUpdateButton.addActionListener(e-> sendUpdate());
+        //findCustomerIDButton.addActionListener(e -> findCustomerIDs());
 
-    if (choice == JFileChooser.APPROVE_OPTION) 
-    {
-        File selectedFile = chooser.getSelectedFile();
-        try 
-        {
-                if (!selectedFile.exists())
-                {
-                        throw new FileNotFoundException(selectedFile.getName());
-                }
-                //Implement orderManager load from file.
-            orderManager.loadFromFile(selectedFile.getAbsolutePath());
-            currentDataFile = selectedFile;
-            JOptionPane.showMessageDialog(frame, "Successfully loaded from " + currentDataFile.getName(), "Success", JOptionPane.INFORMATION_MESSAGE);
-                //refreshPriorityDisplay();
-                //refreshHistoryTable();
-                
-            // Refresh your table views here if applicable
-                } catch (FileNotFoundException e) 
-                {
-            JOptionPane.showMessageDialog(frame, "File not found: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-                }
+        frame.setLocationRelativeTo(null);
+        frame.setVisible(true);
     }
-}
-//File output (save as)
-private static void saveAsFile(JFrame frame) 
-{
-    JFileChooser chooser = new JFileChooser();
-    int choice = chooser.showSaveDialog(frame);
 
-    if (choice == JFileChooser.APPROVE_OPTION) 
+    // =========================================================
+    // FR-1: Create Order (ADD CAPABILITY TO HAVE MULTIPLE ITEMS)
+    // =========================================================  
+    private static void openOrderWindow()
     {
-        File selectedFile = chooser.getSelectedFile();
-        try 
-                {
-                        if (selectedFile == null)
-                        {
-                                throw new FileNotFoundException("Invalid file");
-                        }
-                        
-            orderManager.saveToFile(selectedFile.getAbsolutePath());
-            currentDataFile = selectedFile;
-            JOptionPane.showMessageDialog(frame, "Successfully saved as " + currentDataFile.getName(), "Success", JOptionPane.INFORMATION_MESSAGE);
-                } 
-        catch (FileNotFoundException e) 
-                {
-            JOptionPane.showMessageDialog(frame, "Error saving file: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-                }
-    }
-}
-        //Create ordeer screen with customer selection
+        JDialog dialog = new JDialog(frame, "Create Order", true);
+        dialog.setSize(420, 320);
+        dialog.setLayout(null);
 
+        JLabel idLabel = new JLabel("Customer ID: ");
+        idLabel.setBounds(20, 20, 90, 25);
+        dialog.add(idLabel);
 
-private static JPanel createOrderScreen()
-{
-        JPanel panel = new JPanel(new BorderLayout(10, 10));
-        panel.add(makeHeader("Create Order"), BorderLayout.NORTH);
+        JTextField customerIDField = new JTextField();
+        customerIDField.setBounds(115, 20, 120, 25);
+        dialog.add(customerIDField);
 
-        JPanel centerPanel = new JPanel(new BorderLayout(10, 10));
-        centerPanel.setBorder(BorderFactory.createEmptyBorder(15, 50, 20, 50));
+        JButton newCustomerButton = new JButton("New Customer");
+        newCustomerButton.setBounds(245, 20, 140, 25);
+        dialog.add(newCustomerButton);
 
-        //customer selection new and existing
-        JPanel customerPanel = new JPanel(new GridLayout(2, 1));
-        customerPanel.setBorder(new TitledBorder("Customer Information"));
+        JLabel itemLabel = new JLabel("Item: ");
+        itemLabel.setBounds(20, 60, 90, 25);
+        dialog.add(itemLabel);
+        JComboBox<Items> itemComboBox = new JComboBox<>(Items.values());
+        itemComboBox.setBounds(115, 60, 270, 25);
+        dialog.add(itemComboBox);
 
-        JPanel radioPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        JRadioButton existingRadio = new JRadioButton("Existing Customer", true);
-        JRadioButton newRadio = new JRadioButton("New Customer");
-        ButtonGroup group = new ButtonGroup();
-        group.add(existingRadio);
-        group.add(newRadio);
+        JLabel quantityLabel = new JLabel("Quantity: ");
+        quantityLabel.setBounds(20, 100, 90, 25);
+        dialog.add(quantityLabel);
+        JTextField quantityField = new JTextField();
+        quantityField.setBounds(115, 100, 270, 25);
+        dialog.add(quantityField);
 
-        JButton newCustomerFormBtn = new JButton("New Customer Form");
-        newCustomerFormBtn.setEnabled(false);
-        
-        radioPanel.add(existingRadio);
-        radioPanel.add(newRadio);
-        radioPanel.add(newCustomerFormBtn);
-        
-        JPanel idPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        JTextField customerIdField = new JTextField(10);
         JCheckBox deliveryCheckBox = new JCheckBox("Delivery");
-        idPanel.add(new JLabel("Customer ID: "));
-        idPanel.add(customerIdField);
-        idPanel.add(deliveryCheckBox);
-        
-        customerPanel.add(radioPanel);
-        customerPanel.add(idPanel);
+        deliveryCheckBox.setBounds(115, 140, 150, 25);
+        dialog.add(deliveryCheckBox);
 
-        
-        existingRadio.addActionListener(e -> newCustomerFormBtn.setEnabled(false));
-        newRadio.addActionListener(e ->
-        {
-                newCustomerFormBtn.setEnabled(true);
-                showNewCustomerPopup(panel, customerIdField);
-        });
-
-        newCustomerFormBtn.addActionListener(
-                e -> showNewCustomerPopup(panel, customerIdField));
-//bakery items
-  
-
-        Items[] allItems = Items.values();
-        JTextField[] qtyFields = new JTextField[allItems.length];
-
-        JPanel itemsPanel = new JPanel(new GridLayout(allItems.length + 1, 2, 10, 10));
-        itemsPanel.setBorder(new TitledBorder("Bakery Items"));
-        itemsPanel.add(new JLabel("Item"));
-        itemsPanel.add(new JLabel("Quantity"));
-
-        for (int i = 0; i < allItems.length; i++)
-        {
-                itemsPanel.add(new JLabel(allItems[i].toString()));
-                qtyFields[i] = new JTextField("0");
-                itemsPanel.add(qtyFields[i]);
-        }
-                        
-
- //Save Order Button
         JButton saveButton = new JButton("Save Order");
-        saveButton.setBackground(Color.GREEN);
-        saveButton.addActionListener(e -> {
-                try 
+        saveButton.setBounds(115, 200, 120, 30);
+        dialog.add(saveButton);
+
+        JButton closeButton = new JButton("Cancel");
+        closeButton.setBounds(250, 200, 100, 30);
+        dialog.add(closeButton);
+
+        newCustomerButton.addActionListener(e -> openCustomerWindow(customerIDField));
+
+        saveButton.addActionListener(e ->
+            {
+                try
                 {
-                        int customerID = Integer.parseInt(customerIdField.getText().trim());
-                        boolean isDelivery = deliveryCheckBox.isSelected();
-                        int count = 0;
-                                //Count how many items have quantity > 0
-                        for (int i = 0; i < allItems.length; i++)
-                        {
-                                int q = Integer.parseInt(qtyFields[i].getText().trim());
-                                if(q > 0)
-                                {
-                                        count++;
-                                }
-                        }
-                        Items[] selectedItems = new Items[count];
-                        int[] selectedQuantities = new int[count];
-                        int index = 0;
-                        
-                        for (int i = 0; i < allItems.length; i++)
-                        {
-                                int q = Integer.parseInt(qtyFields[i].getText().trim());
-                                if (q > 0)
-                                {
-                                        selectedItems[index] = allItems[i];
-                                        selectedQuantities[index] = q;
-                                                index++;
-                                }
-                        }
-                        
-        //createOrder method goes here
-        
-                                                        
-                                
-        centerPanel.add(customerPanel, BorderLayout.NORTH);
-        centerPanel.add(itemsPanel, BorderLayout.CENTER);
-        centerPanel.add(saveButton, BorderLayout.SOUTH);
-        panel.add(centerPanel, BorderLayout.CENTER);
-        return panel;
-}
+                    int customerID = Integer.parseInt(customerIDField.getText());
+                    int quantity = Integer.parseInt(quantityField.getText());
+                    Items item = (Items) itemComboBox.getSelectedItem();
 
-//Pop up for adding a new customer during the order creation
-private static void showNewCustomerPopup(
-        Component parent, JTextField customerIDField)
-{
-    JTextField nameField = new JTextField();
-    JTextField emailField = new JTextField();
-    JTextField phoneField = new JTextField();
-    JTextField addressField = new JTextField();
+                    Items[] items = {item};
+                    int[] quantities = {quantity};
 
-    JPanel form = new JPanel(new GridLayout(4, 2, 8, 8));
+                    Order order = orderManager.createOrder(customerID, items, quantities, deliveryCheckBox.isSelected());
 
-    form.add(new JLabel("Name:"));
-    form.add(nameField);
-    form.add(new JLabel("Email:"));
-    form.add(emailField);
-    form.add(new JLabel("Phone:"));
-    form.add(phoneField);
-    form.add(new JLabel("Address:"));
-    form.add(addressField);
+                    display("Created order: \n" + order);
+                    statusLabel.setText("Status: Order " + order.getOrderID() + " created");
+                    dialog.dispose();
+                }
+                catch(NumberFormatException ex)
+                {
+                    showDialogError(dialog, "Quantity must be non-negative");
+                }
+                catch(IllegalArgumentException ex)
+                {
+                    showDialogError(dialog, ex.getMessage());
+                }
+            }
+        );
 
-    while (true)
+        closeButton.addActionListener(e -> dialog.dispose());
+
+        dialog.setLocationRelativeTo(frame);
+        dialog.setVisible(true);
+
+    }
+    // =========================================================
+    // FR-2: Cancel Order (TO-DO)
+    // =========================================================  
+    private static void cancelOrder()
     {
-        int result = JOptionPane.showConfirmDialog(
-                parent, form, "Create Customer",
-                JOptionPane.OK_CANCEL_OPTION,
-                JOptionPane.PLAIN_MESSAGE);
+        String input = askForInput("Cancel order", "Enter order ID: ");
 
-        if (result != JOptionPane.OK_OPTION)
+        if(input == null)
         {
             return;
         }
 
         try
         {
-            Customer customer = customerManager.createCustomer(
-                    nameField.getText(),
-                    emailField.getText(),
-                    phoneField.getText(),
-                    addressField.getText());
+            int id = Integer.parseInt(input);
+            orderManager.cancelOrder(id);
+            display("Order " + id + " canceled.");
+            statusLabel.setText("Status: Order " + id + " canceled");
+        }
+        catch(NumberFormatException e)
+        {
+            showError("Order ID must be a whole number.");
+        }
+        catch(IllegalArgumentException e)
+        {
+            showError(e.getMessage());
+        }
 
-            if (customerIDField != null)
-            {
-                customerIDField.setText(
-                        String.valueOf(customer.getCustomerID()));
-            }
+    }
+    // =========================================================
+    // FR-3-5: Update Order Methods
+    // =========================================================  
+    private static void updateOrderWindow()
+    {
 
-            JOptionPane.showMessageDialog(
-                    parent,
-                    "Customer created successfully.\nCustomer ID: "
-                            + customer.getCustomerID());
+    }
+    // =========================================================
+    // FR-6: Track Order (NEED TO FIX)
+    // =========================================================  
+    private static void trackOrder()
+    {
+        String input = askForInput("Track order", "Enter order ID: ");
 
+        if(input == null)
+        {
             return;
         }
-        catch (IllegalArgumentException ex)
+
+        try
         {
-            JOptionPane.showMessageDialog(
-                    parent, ex.getMessage(),
-                    "Customer Error", JOptionPane.ERROR_MESSAGE);
+            int id = Integer.parseInt(input);
+            grabMessage();
+            orderManager.trackOrder(id);
+            String message = getMessage();
+            display(message);
+            display("Tracked Order " + id + "\n\n" + message);
+            statusLabel.setText("Status: Tracked Order " + id);
+        }
+        catch(NumberFormatException e)
+        {
+            showError("Order ID must be a whole number.");
+        }
+        catch(IllegalArgumentException e)
+        {
+            showError(e.getMessage());
+        }
+        finally{
+            System.setOut(originalOut);
+        }
+        
+    }
+    // =========================================================
+    // FR-7:  Order Priority
+    // =========================================================  
+    private static void showPriority()
+    {
+        try{
+            grabMessage();
+            orderManager.orderPriority();
+            String message = getMessage();
+            display("=============== Order Priority ================\n" + "Priority from High to Low\n\n" + message);
+            statusLabel.setText("Status: Showing order priority list");
+        }
+        finally
+        {
+            System.setOut(originalOut);
         }
     }
-}
+    // =========================================================
+    // FR-8: Order History
+    // =========================================================  
+    private static void showHistory()
+
+    {
+        try{
+            grabMessage();
+            orderManager.orderHistory();
+            String message = getMessage();
+            display("=============== Order History ================\n" + message);
+            statusLabel.setText("Status: Showing order history");
+        }
+        finally
+        {
+            System.setOut(originalOut);
+        }
+    }
+    // =========================================================
+    // FR-11: Create Customer
+    // =========================================================  
+    private static void openCustomerWindow(JTextField idFieldToFill)
+    {
+        JDialog dialog = new JDialog(frame, "Create Customer", true);
+        dialog.setSize(450, 300);
+        dialog.setLayout(null);
+
+        JLabel nameLabel = new JLabel("Name: ");
+        nameLabel.setBounds(20, 20, 110, 25);
+        dialog.add(nameLabel);
+        JTextField nameField = new JTextField();
+        nameField.setBounds(110, 20, 280, 25);
+        dialog.add(nameField);
+
+        JLabel emailLabel = new JLabel("Email: ");
+        emailLabel.setBounds(20, 55, 110, 25);
+        dialog.add(emailLabel);
+        JTextField emailField = new JTextField();
+        emailField.setBounds(135, 55, 280, 25);
+        dialog.add(emailField);
+
+        JLabel phoneLabel = new JLabel("Phone Number: ");
+        phoneLabel.setBounds(20, 90, 110, 25);
+        dialog.add(phoneLabel);
+        JTextField phoneTextField = new JTextField();
+        phoneTextField.setBounds(135, 90, 280, 25);
+        dialog.add(phoneTextField);
+
+        JLabel addressLabel = new JLabel("Address: ");
+        addressLabel.setBounds(20, 125, 110, 25);
+        dialog.add(addressLabel);
+        JTextField addressField = new JTextField();
+        addressField.setBounds(135, 125, 280, 25);
+        dialog.add(addressField);
+
+        JButton saveButton = new JButton("Save");
+        saveButton.setBounds(135, 180, 100, 30);
+        dialog.add(saveButton);
+
+        JButton closeButton = new JButton("Cancel");
+        closeButton.setBounds(250, 180, 100, 30);
+        dialog.add(closeButton);
 
 
-//order management screen
-private static JPanel createOrderManagementScreen() {
+        saveButton.addActionListener(e ->
+            {
+                try
+                {
+                    String name = nameField.getText();
+                    String email = emailField.getText();
+                    String phoneNumber = phoneTextField.getText();
+                    String address = addressField.getText();
+                    
+                    Customer c = customerManager.createCustomer(name, email, phoneNumber, address);
 
-    JPanel panel = new JPanel(new BorderLayout(10, 10));
-    JButton trackButton = new JButton("Track Order");
+                    if(idFieldToFill != null)
+                    {
+                        idFieldToFill.setText(String.valueOf(c.getCustomerID()));
+                    }
 
-    //Track order button
-    trackButton.addActionListener(e -> {
-        String input = JOptionPane.showInputDialog(
-                panel, "Enter order ID to track:");
+                    display("Created customer:\n" + c);
+                    statusLabel.setText("Status: Customer " + c.getCustomerID() + " created");
+                    dialog.dispose();
+                }
+                catch(IllegalArgumentException ex)
+                {
+                    showDialogError(dialog, ex.getMessage());
+                }
+            }
+        );
 
-        if (input == null) {
+        closeButton.addActionListener(e -> dialog.dispose());
+
+        dialog.setLocationRelativeTo(frame);
+        dialog.setVisible(true);
+
+    }
+    // =========================================================
+    // FR-12: Send Update
+    // =========================================================  
+    private static void sendUpdate()
+    {
+        String input = askForInput("Track order", "Enter order ID: ");
+
+        if(input == null)
+        {
             return;
         }
 
-        try {
-            int orderID = Integer.parseInt(input.trim());
-
-            orderManager.trackOrder(orderID);
-
-            Order order = orderManager.findOrderIDs(orderID);
-
-            String message;
-
-            if (order.isCompleted()) {
-                message = "Order " + orderID + " is completed.";
-            } else {
-                message = "Order " + orderID + " is not completed.";
-            }
-
-            if (orderManager.isCanceled(orderID)) {
-                message += "\nOrder " + orderID + " has been canceled.";
-            }
-
-            JOptionPane.showMessageDialog(
-                    panel, message, "Order Status",
-                    JOptionPane.INFORMATION_MESSAGE);
-
-
-        } catch (NumberFormatException ex) {
-            JOptionPane.showMessageDialog(panel, "Invalid Order ID.");
-        } catch (IllegalArgumentException ex) {
-            JOptionPane.showMessageDialog(panel, ex.getMessage());
-        }
-    });
-
-    panel.add(trackButton, BorderLayout.SOUTH);
-    return panel;
-}
-//add
-        
-        //update order button
-
-        //updateOrder method for items
-
-
-        //updateOrder method for delivery
-
-        //updateOrder method for completion 
-
-        
-        //sendUpdate method
-}
-
-
-//Cancel Order button (Make it red)
-
-
-                       
-                        //cancelOrder method
-
-                }
-
-        }
-
-
-//sendUpdate and order completion confirmation
-
-
-        //sendUpdate method
-
-}
-
-
-
-//View order by ID
-viewBtn.addActionListener(e -> 
-        String input = JOptionPane.showInputDialog(panel, "Enter orderID to view order: ");
-        if (input == null)
-                return;
         try
         {
-                int orderID = Integer.parseInt(input);
+            int id = Integer.parseInt(input);
+            Order order = orderManager.findOrderIDs(id);
+            grabMessage();
+            customerManager.sendUpdate(order);
+            display(getMessage());
+            display("Tracked Order " + id);
+            statusLabel.setText("Status: Update sent for order " + id);
+        }
+        catch(NumberFormatException e)
+        {
+            showError("Order ID must be a whole number.");
+        }
+        catch(IllegalArgumentException e)
+        {
+            showError(e.getMessage());
+        }
+        finally{
+            System.setOut(originalOut);
+        }
+    }
+    
+    // =========================================================
+    // FR-13: Find Customer ID (HELPER METHOD; MAY REMOVE)
+    // =========================================================  
+    private static void findCustomerIDs()
+    {
+
+    }
+
+       // =========================================================
+    // FR-9: Find Order ID (HELPER METHOD; MAY REMOVE)
+    // =========================================================  
+    private static void findOrder()
+    {
         
-                Order o = orderManager.findOrderIDs(orderID);
-                if (o == null)
-                {
-                        JOptionPane.showMessageDialog(panel, "Order not found.");
-                }
-                else
-                {
-                        JOptionPane.showMessageDialog(panel, o.toString());
-                }
-        }
-        catch (NumberFormatException ex)
-        {
-                JOptionPane.showMessageDialog(panel, "Invalid orderID.", JOptionPane.ERROR_MESSAGE);
-        }
-}
+    }
+    // =========================================================
+    // FR-10: Find Canceled Order (HELPER METHOD; MAY REMOVE)
+    // =========================================================  
+    private static void findCanceled()
+    {
 
-actionPanel.add(updateBtn);
-actionPanel.add(cancelBtn);
-actionPanel.add(trackBtn);
-actionPanel.add(completeBtn);
-actionPanel.add(viewBtn);
-panel.add(scrollPane, BorderLayout.CENTER);
-panel.add(buttonPanel, BorderLayout.SOUTH);
-return panel;
-}
+    }
 
-private static void refreshOrderTable()
-{
-        orderTableModel.setRowCount(0);
-        int id = 1;
-        while (orderManager.findOrderIDs(id) != null)
-        {
-                Order o = orderManager.findOrderIDs(id);
-                String status = orderManager.isCanceled(id)//add
+    // =========================================================
+    // Front End Helpers
+    // ========================================================= 
+    private static void display(String text)
+    {
+        displayArea.setText(text);
+    }
 
-        ]
-}
+    private static void showDialogError(JDialog dialog, String message)
+    {
+        JOptionPane.showMessageDialog(dialog, message, "Error", JOptionPane.ERROR_MESSAGE);
+    }
 
+    private static String askForInput(String title, String prompt)
+    {
+        return JOptionPane.showInputDialog(frame, prompt, title, JOptionPane.QUESTION_MESSAGE);
+    }
 
-//orderPriority screen (Meagan)
-private static JPanel createPriorityScreen()
-{
-        JPanel panel = new JPanel(new BorderLayout(10, 10));
-        panel.add(makeHeader("Order Priority Queue"), BorderLayout.NORTH);
-        JPanel centerSplit = new JPanel(new GridLayout(2, 1, 10, 10));
-        centerSplit.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
-        String[] columns = {"Priority", "Order ID", "Customer ID", "Items", "Quantities", "Delivery", "Submission Time"};
-        priorityTabelModel = new DefaultTabelModel(columns, 0);
-        JTabel priorityTabel = new JTabel(priorityTabelModel);
-        JScrollPane tableScroll = new JScrollPane(priorityTable);
-        tableScroll.setBorder(new TitledBorder("Priority Queue based on submission time."));
-        priorityConsoleArea = new JTextArea();
-        priorityConsoleArea.setEditable(false);
-        JScrollPane textScroll = new JScrollPane(priorityConsoleArea);
-        textScroll.setBorder(new TitledBorder("Order Priority"));
-        centerSplit.add(tableScroll);
-        centerSplit.add(textScroll);
-        JButton refreshBtn = new JButton("Refresh priority");
-        refreshBtn.setBackground(Color.ORANGE);
-        refreshBtn.addActionListener(e -> refreshPriorityDisplay());
-        JPanel bottom = new JPanel();
-        bottom.add(refreshbBtn);
-        panel.add(centerSplit, BorderLayout.CENTER);
-        panel.add(bottom, BorderLayout.SOUTH);
-        return panel;
-}
+    private static void showError(String message)
+    {
+        JOptionPane.showMessageDialog(frame, message, "Error", JOptionPane.ERROR_MESSAGE);
+        statusLabel.setText("Status: Error");
+    }
 
-private static void refreshPriorityDIsplay()
-{
-        //gets output from orderpriority method
-        ByteArrayOutputStream output = new ByteArrayOutputStream();
-        PrintStream originalOut = System.out;
+    private static void grabMessage()
+    {
+        output = new ByteArrayOutputStream();
         System.setOut(new PrintStream(output));
-        orderManager.orderPriority();
+    }
+
+    private static String getMessage()
+    {
         System.setOut(originalOut);
-        priorityConsoleArea.setText(output.toString());
-        
-        //submission time order
-        priorityTableModel.setRowCount(0);
-        int id = 1;
-        int rant = 1;
-        while (orderManager.findOrderIDs(id) != null)
-        {
-                Order o = orderManager.findOrderIDs(id);
-                if(!0.isCompleted() && !orderManager.isCanceled(id))
-                {
-                        priorityTableModel.addRow(new Object[]
-                                rank,
-                                o.getOrderID(),
-                                o.getCustomerID(),
-                                Arrays.toString(o.getItems()),
-                                Arrays.toString(o.getQuantity()),
-                                o.isDelivery(),
-                                o.getSubmissionTime();
-                                rank++;
-                }
-                id++;
-        }
-}
-
-        //order history
-private static JPanel createHistoryScreen()
-{
-
-}
-
-
-
-        //customer management screen
-private static JPanel createCustomerScreen()
-{
-    JPanel panel = new JPanel(new BorderLayout(10, 10));
-    panel.add(makeHeader("Customer Management"), BorderLayout.NORTH);
-
-    JButton createCustomerButton = new JButton("Create Customer");
-    createCustomerButton.addActionListener(
-            e -> showNewCustomerPopup(panel, null));
-
-    JPanel buttonPanel = new JPanel();
-    buttonPanel.add(createCustomerButton);
-    panel.add(buttonPanel, BorderLayout.CENTER);
-
-    return panel;
-}
-
-
-
-
-
-private static void refreshCustomerTable()
-{
-        // c = customer
-                        
-                
-
+        return output.toString();
     }
 }

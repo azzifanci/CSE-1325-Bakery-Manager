@@ -1,7 +1,7 @@
 public class CustomerManager
 {
     private GenLL <Customer> customers = new GenLL <> ();
-    public CustomerManager(){customer= new GenLL<>();}
+    public CustomerManager(){customers= new GenLL<>();}
     private int nextCustomerID = 1;
 
     //createCustomer 
