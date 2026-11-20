@@ -12,6 +12,9 @@ public class GenLL <T> {
     }
 
     private ListNode head;
+    //Azefor: Added a current and previous instances so we don't have to create them everytime in the methods
+    private ListNode current;
+    private ListNode previous;
     private int size;
     
     //Adds a new node to the end of the list 
@@ -28,7 +31,7 @@ public class GenLL <T> {
         }
 
         //Adding to End 
-        ListNode current = head;
+        current = head;
         while(current.next != null)
         {
             current = current.next;
@@ -53,8 +56,8 @@ public class GenLL <T> {
         }
 
         //Linked List w/Multiple Nodes
-        ListNode previous = head;
-        ListNode current = head.next;
+        previous = head;
+        current = head.next;
         while(current != null)
         {
             if(current.data.equals(value))
@@ -74,7 +77,7 @@ public class GenLL <T> {
     {
         if(index < 0 || index >= size) {return null;}
 
-        ListNode current = head;
+        current = head;
         for(int i = 0; i< index; i++)
         {
             current = current.next;
@@ -100,7 +103,7 @@ public class GenLL <T> {
             return;
         }
 
-        ListNode current = head;
+        current = head;
         while(current != null)
         {
             System.out.println(current.data);
