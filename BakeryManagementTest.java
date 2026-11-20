@@ -1,10 +1,13 @@
+//THIS FILE IS NOT FOR SUBMISSION
+//ONLY TO TEST THAT THE BACKEND FUNCTIONS WORK 
+
 import java.util.Scanner;
 
 public class BakeryManagementTest
 {
     private static Scanner input = new Scanner(System.in);
-    private static OrderManager orderManager = new OrderManager();
     private static CustomerManager customerManager = new CustomerManager();
+    private static OrderManager orderManager = new OrderManager(customerManager);
 
     public static void main(String[] args)
     {

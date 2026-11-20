@@ -106,11 +106,12 @@ public class Order {
     public String toString()
     {
         return "Order ID: " + orderID +
-                " | Customer ID: " + orderCustomerID +
-                " | Items: " + Arrays.toString(items) +
-                " | Quantities: " + Arrays.toString(quantity) +
-                " | Delivery Status: " + isDelivery +
-                " | Completed Status : " + isCompleted +
-                " | Submission Time: "  + submissionTime;
+                "\nCustomer ID: " + orderCustomerID +
+                "\nItems: " + Arrays.toString(items) +
+                "\nQuantities: " + Arrays.toString(quantity) +
+                "\nDelivery Status: " + isDelivery +
+                "\nCompleted Status : " + isCompleted +
+                "\nSubmission Time: "  + submissionTime +
+                "\n-----------------------------------------\n";
     }
 }

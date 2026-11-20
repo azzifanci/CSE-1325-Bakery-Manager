@@ -15,14 +15,6 @@ public class Customer
         this.setEmailAddress(emailAddress);
     }
 
-    public Customer()
-    {
-        this.customerID= getCustomerID();
-        this.name= getName();
-        this.address= getAddress();
-        this.phoneNumber= getPhoneNumber();
-        this.emailAddress= getEmailAddress();
-    }
     public int getCustomerID()
     {
         return this.customerID;

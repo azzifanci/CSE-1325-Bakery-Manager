@@ -5,17 +5,30 @@ import java.io.PrintWriter;
 import java.util.Scanner;
 
 public class OrderManager {
+    private CustomerManager customerManager;
     private GenLL <Order> orders = new GenLL <>();
     private GenLL <Order> activeOrders = new GenLL <>();
     private GenLL <Order> canceledOrders = new GenLL <>();
     private int nextOrderID = 1;
 
+    public OrderManager(CustomerManager customerManager) {
+        if(customerManager == null)
+        {
+            throw new IllegalArgumentException("Error! Customer Manager is null");
+        }
+        this.customerManager = customerManager;
+    }
     public Order createOrder(int customerID, Items[] items, int[] quantity, boolean isDelivery) {
-        //checks if the item and quasntities are valid
+        if(customerManager.findCustomerIDs(customerID) == null)
+        {
+            throw new IllegalArgumentException("Customer " + customerID + " not found.");
+        }
+        
+        //checks if the item and quantities are valid
         if(items == null || quantity == null || items.length == 0 || items.length != quantity.length) {
             throw new IllegalArgumentException("Invalid order information");
         }
-        //check each item and quantites
+        //check each item and quantities
         for(int i = 0; i < quantity.length; i++) {
             if(items[i] == null || quantity[i] <= 0) {
                 throw new IllegalArgumentException ("Invalid item or quantity");
@@ -46,6 +59,11 @@ public void cancelOrder(int orderID)
         throw new IllegalArgumentException("Order already completed. Cannot be canceled");    
     }
 
+    if(isCanceled(orderID))
+    {
+        throw new IllegalArgumentException("Order " + orderID + " is already canceled.");
+    }
+
     activeOrders.remove(order);
     canceledOrders.add(order);
 }
@@ -68,7 +86,7 @@ public void updateOrderDelivery(int orderID, boolean newDeliveryStatus)
     //Displays message whether order is canceled 
     if(isCanceled(orderID))
     {
-        System.out.println("Order " + orderID + " has been canceled and cannot be updated.");
+        throw new IllegalArgumentException("Order " + orderID + " has been canceled and cannot be updated.");
     } 
 
     order.setIsDelivery(newDeliveryStatus);
@@ -194,10 +212,7 @@ public boolean isCanceled(int orderID)
         Order order = orders.get(i);
         
         // Write order data comma-separated to the text file
-        writer.println(order.getOrderID() + "," + 
-                       order.getCustomerId() + "," + 
-                       order.isDelivery() + "," + 
-                       order.isCompleted());
+        writer.println(order.getOrderID() + "," + order.getCustomerID() + "," + order.isDelivery() + "," + order.isCompleted());
     }
     writer.close();
 }
