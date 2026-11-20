@@ -15,8 +15,7 @@ private static CustomerManager customerManager = new CustomerManager();
 private static OrderManager orderManager = new OrderManager(customerManager);
 
 private static File currentDataFile = new File("orders.txt"); //Input + ouput file
-
-        
+     
 private static JPanel mainPanel = new JPanel(cardLayout);
 private static CardLayout cardLayout = new CardLayout();
 private static DefaultTableModel orderTableModel;
@@ -120,7 +119,7 @@ private static JPanel createMainMenuPanel()
         //createOrderAction Listener
 
         //customerManagement Action Listener
-
+        customerButton.addActionListener(e -> cardLayout.show(mainPanel, "Customer Management"));
         //orderManagement Action Listener 
 
         //Order Priority action listener (Meagan)
@@ -131,14 +130,15 @@ private static JPanel createMainMenuPanel()
         //Add menu buttons                       
         //Add createOrderButton for menu
         //Add customerButton for menu
+        menuButtons.add(customerButton);
         // Add orderButton for menu
         
         menuButtons.add(priorityButton); //Meagan
         //Add historyButton for menu
 
         
-        mainPanel.add(title, BorderLayout.NORTH);
-        mainPanel.add(menuButtons, BorderLayout.CENTER);
+        menuPanel.add(title, BorderLayout.NORTH);
+        menuPanel.add(menuButtons, BorderLayout.CENTER);
         return menuPanel;
 }
 
@@ -238,11 +238,14 @@ private static JPanel createOrderScreen()
 
         
         existingRadio.addActionListener(e -> newCustomerFormBtn.setEnabled(false));
-        newRadio.addActionListener(e -> 
+        newRadio.addActionListener(e ->
+        {
                 newCustomerFormBtn.setEnabled(true);
-                openNewCustomerForm(panel, customerIdField);
-}
-        newCustomerFormBtn.addActionListener(e -> openNewCustomerForm(panel, customerIdField));
+                showNewCustomerPopup(panel, customerIdField);
+        });
+
+        newCustomerFormBtn.addActionListener(
+                e -> showNewCustomerPopup(panel, customerIdField));
 //bakery items
   
 
@@ -307,37 +310,65 @@ private static JPanel createOrderScreen()
 }
 
 //Pop up for adding a new customer during the order creation
-private static void showNewCustomerPopup(Component parent, JTextField customerIDField)
+private static void showNewCustomerPopup(
+        Component parent, JTextField customerIDField)
 {
+    JTextField nameField = new JTextField();
+    JTextField emailField = new JTextField();
+    JTextField phoneField = new JTextField();
+    JTextField addressField = new JTextField();
 
-        JTextField nameField = new JTextField();
-        JTextField emailField = new JTextField();
-        JTextField phoneField = new JTextField();
-        JTextField addressField = new JTextField();
-        JPanel form = new JPanel(new GridLayout(4, 2, 8, 8));
+    JPanel form = new JPanel(new GridLayout(4, 2, 8, 8));
 
-        form.add(new JLabel("Name: "));
-        form.add(nameField);
-        form.add(new JLabel("Email: "));
-        form.add(emailField);
-        form.add(new JLabel("Phone: "));
-        form.add(phoneField);
-        form.add(new JLabel("Address: ");
-        form.add(addressField);
+    form.add(new JLabel("Name:"));
+    form.add(nameField);
+    form.add(new JLabel("Email:"));
+    form.add(emailField);
+    form.add(new JLabel("Phone:"));
+    form.add(phoneField);
+    form.add(new JLabel("Address:"));
+    form.add(addressField);
 
-        int result = JOptionPane.showConfirmDialog(parent, form, "New Customer", JOptionPane.OK_CANCEL_OPTION);
-        if (result == JOptionPane.OK_OPTION)
+    while (true)
+    {
+        int result = JOptionPane.showConfirmDialog(
+                parent, form, "Create Customer",
+                JOptionPane.OK_CANCEL_OPTION,
+                JOptionPane.PLAIN_MESSAGE);
+
+        if (result != JOptionPane.OK_OPTION)
         {
-                String name = nameField.getText();
-                String email = emailField.getText();
-                int phone = phoneField.getText();
-                String address = addressField.getText();
+            return;
+        }
 
+        try
+        {
+            Customer customer = customerManager.createCustomer(
+                    nameField.getText(),
+                    emailField.getText(),
+                    phoneField.getText(),
+                    addressField.getText());
 
+            if (customerIDField != null)
+            {
+                customerIDField.setText(
+                        String.valueOf(customer.getCustomerID()));
+            }
 
-        //createCustomer method goes here
-                
-}
+            JOptionPane.showMessageDialog(
+                    parent,
+                    "Customer created successfully.\nCustomer ID: "
+                            + customer.getCustomerID());
+
+            return;
+        }
+        catch (IllegalArgumentException ex)
+        {
+            JOptionPane.showMessageDialog(
+                    parent, ex.getMessage(),
+                    "Customer Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
 }
 
 
@@ -507,9 +538,18 @@ private static JPanel createHistoryScreen()
         //customer management screen
 private static JPanel createCustomerScreen()
 {
+    JPanel panel = new JPanel(new BorderLayout(10, 10));
+    panel.add(makeHeader("Customer Management"), BorderLayout.NORTH);
 
-        
-        //createCustomer method
+    JButton createCustomerButton = new JButton("Create Customer");
+    createCustomerButton.addActionListener(
+            e -> showNewCustomerPopup(panel, null));
+
+    JPanel buttonPanel = new JPanel();
+    buttonPanel.add(createCustomerButton);
+    panel.add(buttonPanel, BorderLayout.CENTER);
+
+    return panel;
 }
 
 
