@@ -1,27 +1,24 @@
 import javax.swing.*;
 import java.awt.*;
-import java.swing.table.DefaultTableModel;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 import java.util.Arrays;
-//import java.io.File;
-//import java.io.FileNotFoundException;
-
+import java.io.File;
+import java.io.FileNotFoundException;
+//import java.swing.table.DefaultTableModel;
 
 //!not yet completed!
 
 public class BakeryManagementFE_GUI {
 
 private static CustomerManager customerManager = new CustomerManager();
-private static OrderManager orderManager = new OrderManager();
+private static OrderManager orderManager = new OrderManager(customerManager);
 
-//input and output 
-private static File currentDataFile = new File("orders.txt");
+private static File currentDataFile = new File("orders.txt"); //Input + ouput file
 
         
 private static JPanel mainPanel = new JPanel(cardLayout);
 private static CardLayout cardLayout = new CardLayout();
-
 private static DefaultTableModel orderTableModel;
 private static DefaultTableModel priorityTableModel;
 private static DefaultTableModel customerTableModel;
@@ -36,35 +33,25 @@ public static void main(String[] args) {
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
 
-        // Menu bar 
+        // Menu Bar 
         JMenuBar menuBar = new JMenuBar();
-
         JMenu fileMenu = new JMenu("File");
-       
         JMenuItem loadMenuItem = new JMenuItem("Load From File");
         JMenuItem saveAsMenuItem = new JMenuItem("Save As File");
         JMenuItem exitMenuItem = new JMenuItem("Exit");
         
-        // Add Action Listeners for File I/O
-        loadMenuItem.addActionListener(e -> loadFromFile(frame));
-        saveAsMenuItem.addActionListener(e -> saveAsFile(frame));
-        exitMenuItem.addActionListener(e -> System.exit(0));
 
-        
         // Assemble File Menu 
         fileMenu.add(loadMenuItem);
         fileMenu.add(saveAsMenuItem);
         fileMenu.addSeparator();
-        fileMenu.add(exitMenuItem);
-                                
+        fileMenu.add(exitMenuItem);             
         menuBar.add(fileMenu);
-
         frame.setJMenuBar(menuBar);
 
         
-        // Card layout
-        //When a user clicks a button, it takes them to that certain window rather than all windows at once.
-
+        // Card Layout
+            //When a user clicks a button, it takes them to that certain window rather than all windows at once.
         mainPanel.add(createMainMenuPanel(), "Main Menu");
         mainPanel.add(createOrderScreen(), "Create Order");
         mainPanel.add(createCustomerScreen(), "Customer Management");
@@ -74,6 +61,11 @@ public static void main(String[] args) {
 
         frame.add(mainPanel);
         frame.setVisible(true);
+
+        // Add Action Listeners for File I/O
+        loadMenuItem.addActionListener(e -> loadFromFile(frame));
+        saveAsMenuItem.addActionListener(e -> saveAsFile(frame));
+        exitMenuItem.addActionListener(e -> System.exit(0));
 }
 
 //Helper for back button
@@ -93,20 +85,20 @@ private static JPanel makeHeader(String titleText)
         header.add(title, BorderLayout.CENTER);
         return header;
 }
-        //Main menu panel 
-                        
+
+//Main Menu Panel              
 private static JPanel createMainMenuPanel()
 {
-        Jpanel menuPanel = new JPanel(new BorderLayout(20, 20));
-        //add borders 
+        JPanel menuPanel = new JPanel(new BorderLayout(20, 20));
+        
+        //Add Borders 
         menuPanel.setBorder(BorderFactory.createEmptyBorder(30, 180, 50, 180));
 
         JLabel title = new JLabel("Bakery Management System", JLabel.CENTER);
-        title.setFont(new Font("Arial", Font.BOLD, 25));
+        title.setFont(new Font("Inter", Font.BOLD, 25));
 
-        //add menu buttons w/ colors! 
+        //Menu Buttons with Colors 
         JPanel menuButtons = new JPanel(new GridLayout(5, 1, 15, 15));
-        
 
         JButton createOrderButton = new JButton("Create Order");
         createOrderButton.setBackground(Color.GREEN);
@@ -125,25 +117,22 @@ private static JPanel createMainMenuPanel()
 
         //Action listeners for each button. 
         
-       //Add action listener for createOrder button
+        //createOrderAction Listener
 
-        //add action listener for customerManagement button
+        //customerManagement Action Listener
 
-       //add action listener for orderManagement button
+        //orderManagement Action Listener 
 
+        //Order Priority action listener (Meagan)
+        priorityButton.addActionListener(e -> refreshOrderTable());
+        cardLayout.show(mainPanel, "Order Management");
         
-                //Order Priority action listener (Meagan)
-        priorityButton.addActionListener(e ->
-                refreshOrderTable();
-                cardLayout.show(mainPanel, "Order Management");
-                
-
-                                         
-       //Add menu buttons
-                                                 
+        
+        //Add menu buttons                       
         //Add createOrderButton for menu
         //Add customerButton for menu
         // Add orderButton for menu
+        
         menuButtons.add(priorityButton); //Meagan
         //Add historyButton for menu
 
@@ -172,8 +161,8 @@ private static void loadFromFile(JFrame frame)
             orderManager.loadFromFile(selectedFile.getAbsolutePath());
             currentDataFile = selectedFile;
             JOptionPane.showMessageDialog(frame, "Successfully loaded from " + currentDataFile.getName(), "Success", JOptionPane.INFORMATION_MESSAGE);
-                refreshPriorityDisplay();
-                refreshHistoryTable();
+                //refreshPriorityDisplay();
+                //refreshHistoryTable();
                 
             // Refresh your table views here if applicable
                 } catch (FileNotFoundException e) 
