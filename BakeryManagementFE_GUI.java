@@ -15,9 +15,8 @@ private static CustomerManager customerManager = new CustomerManager();
 private static OrderManager orderManager = new OrderManager(customerManager);
 
 private static File currentDataFile = new File("orders.txt"); //Input + ouput file
-     
-private static JPanel mainPanel = new JPanel(cardLayout);
 private static CardLayout cardLayout = new CardLayout();
+private static JPanel mainPanel = new JPanel(cardLayout);
 private static DefaultTableModel orderTableModel;
 private static DefaultTableModel priorityTableModel;
 private static DefaultTableModel customerTableModel;
@@ -202,7 +201,7 @@ private static void saveAsFile(JFrame frame)
 
 private static JPanel createOrderScreen()
 {
-        JPanel panel = new JPanel(new JPanel(new BorderLayout(10, 10));
+        JPanel panel = new JPanel(new BorderLayout(10, 10));
         panel.add(makeHeader("Create Order"), BorderLayout.NORTH);
 
         JPanel centerPanel = new JPanel(new BorderLayout(10, 10));
@@ -229,9 +228,9 @@ private static JPanel createOrderScreen()
         JPanel idPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         JTextField customerIdField = new JTextField(10);
         JCheckBox deliveryCheckBox = new JCheckBox("Delivery");
-        idRow.add(new JLabel("Customer ID: "));
-        idRow.add(customerIDField);
-        idRow.add(deliveryBox);
+        idPanel.add(new JLabel("Customer ID: "));
+        idPanel.add(customerIdField);
+        idPanel.add(deliveryCheckBox);
         
         customerPanel.add(radioPanel);
         customerPanel.add(idPanel);
@@ -254,13 +253,13 @@ private static JPanel createOrderScreen()
 
         JPanel itemsPanel = new JPanel(new GridLayout(allItems.length + 1, 2, 10, 10));
         itemsPanel.setBorder(new TitledBorder("Bakery Items"));
-        itemPanel.add(new JLabel("Item"));
+        itemsPanel.add(new JLabel("Item"));
         itemsPanel.add(new JLabel("Quantity"));
 
         for (int i = 0; i < allItems.length; i++)
         {
                 itemsPanel.add(new JLabel(allItems[i].toString()));
-                gtyFields[i] = new JTextField("0");
+                qtyFields[i] = new JTextField("0");
                 itemsPanel.add(qtyFields[i]);
         }
                         
@@ -268,7 +267,7 @@ private static JPanel createOrderScreen()
  //Save Order Button
         JButton saveButton = new JButton("Save Order");
         saveButton.setBackground(Color.GREEN);
-        saveButton.addActionListener(e ->
+        saveButton.addActionListener(e -> {
                 try 
                 {
                         int customerID = Integer.parseInt(customerIdField.getText().trim());
@@ -302,9 +301,9 @@ private static JPanel createOrderScreen()
         
                                                         
                                 
-        centerPanel.add(customerSection, BorderLayout.NORTH);
+        centerPanel.add(customerPanel, BorderLayout.NORTH);
         centerPanel.add(itemsPanel, BorderLayout.CENTER);
-        centerPanel.add(saveBtn, BorderLayout.SOUTH);
+        centerPanel.add(saveButton, BorderLayout.SOUTH);
         panel.add(centerPanel, BorderLayout.CENTER);
         return panel;
 }
@@ -373,8 +372,54 @@ private static void showNewCustomerPopup(
 
 
 //order management screen
-private static JPanel createOrderManagementScreen()
-{
+private static JPanel createOrderManagementScreen() {
+
+    JPanel panel = new JPanel(new BorderLayout(10, 10));
+    JButton trackButton = new JButton("Track Order");
+
+    //Track order button
+    trackButton.addActionListener(e -> {
+        String input = JOptionPane.showInputDialog(
+                panel, "Enter order ID to track:");
+
+        if (input == null) {
+            return;
+        }
+
+        try {
+            int orderID = Integer.parseInt(input.trim());
+
+            orderManager.trackOrder(orderID);
+
+            Order order = orderManager.findOrderIDs(orderID);
+
+            String message;
+
+            if (order.isCompleted()) {
+                message = "Order " + orderID + " is completed.";
+            } else {
+                message = "Order " + orderID + " is not completed.";
+            }
+
+            if (orderManager.isCanceled(orderID)) {
+                message += "\nOrder " + orderID + " has been canceled.";
+            }
+
+            JOptionPane.showMessageDialog(
+                    panel, message, "Order Status",
+                    JOptionPane.INFORMATION_MESSAGE);
+
+
+        } catch (NumberFormatException ex) {
+            JOptionPane.showMessageDialog(panel, "Invalid Order ID.");
+        } catch (IllegalArgumentException ex) {
+            JOptionPane.showMessageDialog(panel, ex.getMessage());
+        }
+    });
+
+    panel.add(trackButton, BorderLayout.SOUTH);
+    return panel;
+}
 //add
         
         //update order button
@@ -401,13 +446,6 @@ private static JPanel createOrderManagementScreen()
 
         }
 
-
-
-//Track order button
-
-        //trackOrder method
-
-}
 
 //sendUpdate and order completion confirmation
 
@@ -459,7 +497,7 @@ private static void refreshOrderTable()
         int id = 1;
         while (orderManager.findOrderIDs(id) != null)
         {
-                Order o = orderManager.FindOrderIDs(id);
+                Order o = orderManager.findOrderIDs(id);
                 String status = orderManager.isCanceled(id)//add
 
         ]
