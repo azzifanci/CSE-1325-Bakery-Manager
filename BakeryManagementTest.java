@@ -121,12 +121,8 @@ public class BakeryManagementTest
         String email = input.nextLine();
         System.out.print("Phone: ");
         String phone = input.nextLine();
-        System.out.print("Address (blank for none): ");
+        System.out.print("Address: ");
         String address = input.nextLine();
-        if (address.trim().isEmpty())
-        {
-            address = null;
-        }
 
         // Your createCustomer takes (name, email, phone, address)
         Customer c = customerManager.createCustomer(name, email, phone, address);
