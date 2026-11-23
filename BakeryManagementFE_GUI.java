@@ -169,7 +169,7 @@ public class BakeryManagementFE_GUI {
                     Order order = orderManager.createOrder(customerID, items, quantities, deliveryCheckBox.isSelected());
 
                     display("Created order: \n" + order);
-                    statusLabel.setText("Status: Order " + order.getOrderID() + " created");
+                    statusLabel.setText("Status: Order " + order.getOrderId() + " created");
                     dialog.dispose();
                 }
                 catch(NumberFormatException ex)
