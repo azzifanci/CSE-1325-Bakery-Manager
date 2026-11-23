@@ -31,9 +31,9 @@ public class BakeryManagementFE_GUI {
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setLayout(null);
 
-    // =========================================================
-    // Button Panel
-    // =========================================================   
+        // =========================================================
+        // Button Panel
+        // =========================================================
         JPanel buttonPanel = new JPanel(new GridLayout (6, 2, 8, 8));
         buttonPanel.setBounds(10, 10, 300, 950);
         buttonPanel.setBorder(new TitledBorder("Menu: "));
@@ -45,13 +45,12 @@ public class BakeryManagementFE_GUI {
         //JButton completeButton = new JButton("Mark Order Completed");
         JButton trackButton = new JButton("Track Order");
         JButton priorityButton = new JButton("Order Priority List");
-        JButton historyButton = new JButton("Order History");
         //JButton findOrderButton = new JButton("Find Order ID");
         //JButton findCanceledButton = new JButton("Find Canceled Order");
         JButton customerButton = new JButton("Create Customer");
         JButton sendUpdateButton = new JButton("Send Update");
         //JButton findCustomerIDButton = new JButton("Find Customer ID");
-        
+
         buttonPanel.add(orderButton);
         buttonPanel.add(cancelButton);
         buttonPanel.add(updateButton);
@@ -59,15 +58,27 @@ public class BakeryManagementFE_GUI {
         buttonPanel.add(customerButton);
         buttonPanel.add(trackButton);
         buttonPanel.add(priorityButton);
-        buttonPanel.add(historyButton);
         //buttonPanel.add(findOrderButton);
         //buttonPanel.add(findCanceledButton);
         buttonPanel.add(sendUpdateButton);
         //buttonPanel.add(findCustomerIDButton);
 
-    // =========================================================
-    // Results Panel
-    // =========================================================   
+        //Menu bar
+        JMenuBar menuBar= new JMenuBar();
+        JMenu viewMenu= new JMenu("View");
+        JMenuItem orderHistoryItem= new JMenuItem("Order History");
+        JMenuItem customerDataItem= new JMenuItem("Customer Info");
+
+        viewMenu.add(orderHistoryItem);
+        viewMenu.addSeparator();
+        viewMenu.add(customerDataItem);
+
+        menuBar.add(viewMenu);
+        frame.setJMenuBar(menuBar);
+
+        // =========================================================
+        // Results Panel
+        // =========================================================
         JPanel displayPanel = new JPanel(null);
         displayPanel.setBounds(320, 10, 660, 950);
         displayPanel.setBorder(new TitledBorder ("Results"));
@@ -78,7 +89,7 @@ public class BakeryManagementFE_GUI {
         displayArea.setLineWrap(true);
         displayArea.setWrapStyleWord(true);
         displayArea.setFont(new Font("Inter", Font.PLAIN, 14));
-        
+
         JScrollPane scrollPane = new JScrollPane(displayArea);
         scrollPane.setBounds(15, 25, 630, 880);
         displayPanel.add(scrollPane);
@@ -87,16 +98,17 @@ public class BakeryManagementFE_GUI {
         statusLabel.setBounds(15, 915, 630, 25);
         displayPanel.add(statusLabel);
 
-    // =========================================================
-    // Event Listeners
-    // =========================================================  
+        // =========================================================
+        // Event Listeners
+        // =========================================================
         orderButton.addActionListener(e -> openOrderWindow());
         cancelButton.addActionListener(e -> cancelOrder());
         updateButton.addActionListener(e-> updateOrderWindow());
         customerButton.addActionListener(e -> openCustomerWindow(null));
         trackButton.addActionListener(e-> trackOrder());
         priorityButton.addActionListener(e-> showPriority());
-        historyButton.addActionListener(e-> showHistory());
+        orderHistoryItem.addActionListener(e-> showHistory());
+        customerDataItem.addActionListener(e-> showDataBase());
         //findOrderButton.addActionListener(e-> findOrder());
         //findCanceledButton.addActionListener(e-> findCanceled());
         sendUpdateButton.addActionListener(e-> sendUpdate());
@@ -156,31 +168,31 @@ public class BakeryManagementFE_GUI {
         newCustomerButton.addActionListener(e -> openCustomerWindow(customerIDField));
 
         saveButton.addActionListener(e ->
-            {
-                try
                 {
-                    int customerID = Integer.parseInt(customerIDField.getText());
-                    int quantity = Integer.parseInt(quantityField.getText());
-                    Items item = (Items) itemComboBox.getSelectedItem();
+                    try
+                    {
+                        int customerID = Integer.parseInt(customerIDField.getText());
+                        int quantity = Integer.parseInt(quantityField.getText());
+                        Items item = (Items) itemComboBox.getSelectedItem();
 
-                    Items[] items = {item};
-                    int[] quantities = {quantity};
+                        Items[] items = {item};
+                        int[] quantities = {quantity};
 
-                    Order order = orderManager.createOrder(customerID, items, quantities, deliveryCheckBox.isSelected());
+                        Order order = orderManager.createOrder(customerID, items, quantities, deliveryCheckBox.isSelected());
 
-                    display("Created order: \n" + order);
-                    statusLabel.setText("Status: Order " + order.getOrderId() + " created");
-                    dialog.dispose();
+                        display("Created order: \n" + order);
+                        statusLabel.setText("Status: Order " + order.getOrderID() + " created");
+                        dialog.dispose();
+                    }
+                    catch(NumberFormatException ex)
+                    {
+                        showDialogError(dialog, "Quantity must be non-negative");
+                    }
+                    catch(IllegalArgumentException ex)
+                    {
+                        showDialogError(dialog, ex.getMessage());
+                    }
                 }
-                catch(NumberFormatException ex)
-                {
-                    showDialogError(dialog, "Quantity must be non-negative");
-                }
-                catch(IllegalArgumentException ex)
-                {
-                    showDialogError(dialog, ex.getMessage());
-                }
-            }
         );
 
         closeButton.addActionListener(e -> dialog.dispose());
@@ -258,7 +270,7 @@ public class BakeryManagementFE_GUI {
         finally{
             System.setOut(originalOut);
         }
-        
+
     }
     // =========================================================
     // FR-7:  Order Priority
@@ -281,7 +293,6 @@ public class BakeryManagementFE_GUI {
     // FR-8: Order History
     // =========================================================  
     private static void showHistory()
-
     {
         try{
             grabMessage();
@@ -292,6 +303,19 @@ public class BakeryManagementFE_GUI {
         }
         finally
         {
+            System.setOut(originalOut);
+        }
+    }
+    private static void showDataBase()
+    {
+        try
+        {
+            grabMessage();
+            customerManager.customerDataBase();
+            String message= getMessage();
+            display("=============== Customer Information ================\n" + message);
+        }
+        finally {
             System.setOut(originalOut);
         }
     }
@@ -342,30 +366,30 @@ public class BakeryManagementFE_GUI {
 
 
         saveButton.addActionListener(e ->
-            {
-                try
                 {
-                    String name = nameField.getText();
-                    String email = emailField.getText();
-                    String phoneNumber = phoneTextField.getText();
-                    String address = addressField.getText();
-                    
-                    Customer c = customerManager.createCustomer(name, email, phoneNumber, address);
-
-                    if(idFieldToFill != null)
+                    try
                     {
-                        idFieldToFill.setText(String.valueOf(c.getCustomerID()));
-                    }
+                        String name = nameField.getText();
+                        String email = emailField.getText();
+                        String phoneNumber = phoneTextField.getText();
+                        String address = addressField.getText();
 
-                    display("Created customer:\n" + c);
-                    statusLabel.setText("Status: Customer " + c.getCustomerID() + " created");
-                    dialog.dispose();
+                        Customer c = customerManager.createCustomer(name, email, phoneNumber, address);
+
+                        if(idFieldToFill != null)
+                        {
+                            idFieldToFill.setText(String.valueOf(c.getCustomerID()));
+                        }
+
+                        display("Created customer:\n" + c);
+                        statusLabel.setText("Status: Customer " + c.getCustomerID() + " created");
+                        dialog.dispose();
+                    }
+                    catch(IllegalArgumentException ex)
+                    {
+                        showDialogError(dialog, ex.getMessage());
+                    }
                 }
-                catch(IllegalArgumentException ex)
-                {
-                    showDialogError(dialog, ex.getMessage());
-                }
-            }
         );
 
         closeButton.addActionListener(e -> dialog.dispose());
@@ -408,7 +432,7 @@ public class BakeryManagementFE_GUI {
             System.setOut(originalOut);
         }
     }
-    
+
     // =========================================================
     // FR-13: Find Customer ID (HELPER METHOD; MAY REMOVE)
     // =========================================================  
@@ -417,12 +441,12 @@ public class BakeryManagementFE_GUI {
 
     }
 
-       // =========================================================
+    // =========================================================
     // FR-9: Find Order ID (HELPER METHOD; MAY REMOVE)
     // =========================================================  
     private static void findOrder()
     {
-        
+
     }
     // =========================================================
     // FR-10: Find Canceled Order (HELPER METHOD; MAY REMOVE)
