@@ -34,7 +34,7 @@ public class BakeryManagementFE_GUI {
     // =========================================================
     // Button Panel
     // =========================================================   
-        JPanel buttonPanel = new JPanel(new GridLayout (6, 2, 8, 8));
+        JPanel buttonPanel = new JPanel(new GridLayout (4, 2, 8, 8));
         buttonPanel.setBounds(10, 10, 300, 950);
         buttonPanel.setBorder(new TitledBorder("Menu: "));
         frame.add(buttonPanel);
@@ -111,8 +111,11 @@ public class BakeryManagementFE_GUI {
     // =========================================================  
     private static void openOrderWindow()
     {
+        GenLL <Items> addedItems = new GenLL <>();
+        GenLL <Integer> addedQuantities = new GenLL <>();
+
         JDialog dialog = new JDialog(frame, "Create Order", true);
-        dialog.setSize(420, 320);
+        dialog.setSize(440, 470);
         dialog.setLayout(null);
 
         JLabel idLabel = new JLabel("Customer ID: ");
@@ -124,53 +127,107 @@ public class BakeryManagementFE_GUI {
         dialog.add(customerIDField);
 
         JButton newCustomerButton = new JButton("New Customer");
-        newCustomerButton.setBounds(245, 20, 140, 25);
+        newCustomerButton.setBounds(245, 20, 160, 25);
         dialog.add(newCustomerButton);
 
         JLabel itemLabel = new JLabel("Item: ");
         itemLabel.setBounds(20, 60, 90, 25);
         dialog.add(itemLabel);
         JComboBox<Items> itemComboBox = new JComboBox<>(Items.values());
-        itemComboBox.setBounds(115, 60, 270, 25);
+        itemComboBox.setBounds(115, 60, 290, 25);
         dialog.add(itemComboBox);
 
         JLabel quantityLabel = new JLabel("Quantity: ");
-        quantityLabel.setBounds(20, 100, 90, 25);
+        quantityLabel.setBounds(20, 95, 90, 25);
         dialog.add(quantityLabel);
-        JTextField quantityField = new JTextField();
-        quantityField.setBounds(115, 100, 270, 25);
-        dialog.add(quantityField);
+        JSpinner quantitySpinner = new JSpinner(new SpinnerNumberModel(1, 1, 999, 1));
+        quantitySpinner.setBounds(115, 95, 80, 25);
+        quantitySpinner.setBounds(115, 95, 80, 25);
+        dialog.add(quantitySpinner);
+
+        JButton addItemButton = new JButton("Add Item(s)");
+        addItemButton.setBounds(245, 95, 160, 25);
+        dialog.add(addItemButton);
+
+        JTextArea itemsArea = new JTextArea("No Items added yet.");
+        itemsArea.setEditable(false);
+        JScrollPane itemsScroll = new JScrollPane(itemsArea);
+        itemsScroll.setBounds(20, 135, 385, 160);
+        itemsScroll.setBorder(new TitledBorder("Items: "));
+        dialog.add(itemsScroll);
+
+        JButton clearItemsButton = new JButton("Clear Items");
+        clearItemsButton.setBounds(20, 305, 120, 25);
+        dialog.add(clearItemsButton);
 
         JCheckBox deliveryCheckBox = new JCheckBox("Delivery");
-        deliveryCheckBox.setBounds(115, 140, 150, 25);
+        deliveryCheckBox.setBounds(20, 345, 150, 25);
         dialog.add(deliveryCheckBox);
 
         JButton saveButton = new JButton("Save Order");
-        saveButton.setBounds(115, 200, 120, 30);
+        saveButton.setBounds(100, 390, 120, 30);
         dialog.add(saveButton);
 
         JButton closeButton = new JButton("Cancel");
-        closeButton.setBounds(250, 200, 100, 30);
+        closeButton.setBounds(235, 390, 100, 30);
         dialog.add(closeButton);
 
         newCustomerButton.addActionListener(e -> openCustomerWindow(customerIDField));
 
-        saveButton.addActionListener(e ->
+        addItemButton.addActionListener (e -> 
             {
+                Items item = (Items) itemComboBox.getSelectedItem();
+                    int quantity = (Integer) quantitySpinner.getValue();
+
+                    for(int i = 0; i< addedItems.getSize(); i++)
+                    {
+                        if(addedItems.get(i) == item)
+                        {
+                            showDialogError(dialog, item + " is already added. Click Clear Items to start over");
+                            return;
+                        }
+                    }
+                addedItems.add(item);
+                addedQuantities.add(quantity);
+
+
+                String listText = "";
+                for(int i = 0; i<addedItems.getSize(); i++){
+                    listText = listText + addedItems.get(i) + " - " + addedQuantities.get(i) + "\n";
+                }
+                itemsArea.setText(listText);
+                quantitySpinner.setValue(1);
+            }
+            );
+
+        clearItemsButton.addActionListener(e -> 
+            {
+                while(addedItems.getSize() > 0)
+                {
+                    addedItems.remove(addedItems.get(0));
+                    addedQuantities.remove(addedQuantities.get(0));
+                }
+                itemsArea.setText("No items added yet.");
+            }
+        );
+
+        saveButton.addActionListener(e -> {
                 try
                 {
                     int customerID = Integer.parseInt(customerIDField.getText());
-                    int quantity = Integer.parseInt(quantityField.getText());
-                    Items item = (Items) itemComboBox.getSelectedItem();
-
-                    Items[] items = {item};
-                    int[] quantities = {quantity};
-
+                    Items[] items = new Items[addedItems.getSize()];
+                    int[] quantities = new int[addedItems.getSize()];
+                    for(int i = 0; i< items.length; i++)
+                    {
+                        items[i] = addedItems.get(i);
+                        quantities[i] = addedQuantities.get(i);
+                    }
                     Order order = orderManager.createOrder(customerID, items, quantities, deliveryCheckBox.isSelected());
 
                     display("Created order: \n" + order);
-                    statusLabel.setText("Status: Order " + order.getOrderId() + " created");
+                    statusLabel.setText("Status: Order " + order.getOrderID() + " created");
                     dialog.dispose();
+
                 }
                 catch(NumberFormatException ex)
                 {
@@ -180,15 +237,14 @@ public class BakeryManagementFE_GUI {
                 {
                     showDialogError(dialog, ex.getMessage());
                 }
-            }
-        );
+        });     
 
         closeButton.addActionListener(e -> dialog.dispose());
 
         dialog.setLocationRelativeTo(frame);
         dialog.setVisible(true);
-
     }
+
     // =========================================================
     // FR-2: Cancel Order (TO-DO)
     // =========================================================  
@@ -408,7 +464,14 @@ public class BakeryManagementFE_GUI {
             System.setOut(originalOut);
         }
     }
-    
+    // =========================================================
+    // LOAD FROM FILE
+    // =========================================================  
+
+    // =========================================================
+    // SAVE TO FILE 
+    // =========================================================  
+
     // =========================================================
     // FR-13: Find Customer ID (HELPER METHOD; MAY REMOVE)
     // =========================================================  
