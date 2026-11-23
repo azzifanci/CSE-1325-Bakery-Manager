@@ -2,7 +2,7 @@ public class CustomerManager
 {
     private GenLL <Customer> customers = new GenLL <> ();
     public CustomerManager(){customers= new GenLL<>();}
-    private int nextCustomerID = 1;
+    private int nextCustomerID = 100;
 
     //createCustomer 
     public Customer createCustomer(String name, String emailAddress, String phoneNumber, String address)

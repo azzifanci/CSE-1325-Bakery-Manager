@@ -9,7 +9,7 @@ public class OrderManager {
     private GenLL <Order> orders = new GenLL <>();
     private GenLL <Order> activeOrders = new GenLL <>();
     private GenLL <Order> canceledOrders = new GenLL <>();
-    private int nextOrderID = 1;
+    private int nextOrderID = 100;
 
     public OrderManager(CustomerManager customerManager) {
         if(customerManager == null)
@@ -69,12 +69,6 @@ public void cancelOrder(int orderID)
 }
 
 //updateOrder()
-    // based on the order object I couldn't make one main updateOrder, so I broke it up.
-    // In the GUI I assume it would be one button that says updateOrder then show the following options
-    // Updates the delivery status of an order by its ID.
-
-    //Instead of returning false, let's return an exception
-
 public void updateOrderDelivery(int orderID, boolean newDeliveryStatus)
 {
     Order order = findOrderIDs(orderID);
@@ -205,14 +199,33 @@ public boolean isCanceled(int orderID)
     public void saveToFile(String filepath) throws FileNotFoundException 
     {
     PrintWriter writer = new PrintWriter(new File(filepath));
-    
+
     // Loop through all orders 
     for (int i = 0; i < orders.getSize(); i++) 
     {
         Order order = orders.get(i);
+        Items[] ordersItems = order.getItems();
+        int[] ordersQuantities = order.getQuantity();
+
+        String itemsText = "";
+        for(int j=0; i<ordersItems.length; j++)
+        {
+            if(j > 0)
+            {
+                itemsText = itemsText + ";";
+            }
+            itemsText = itemsText + ordersItems[j] + ":" + ordersQuantities[j];
+        }
         
         // Write order data comma-separated to the text file
-        writer.println(order.getOrderID() + "," + order.getCustomerID() + "," + order.isDelivery() + "," + order.isCompleted());
+        writer.println(order.getOrderID() + "," 
+            + order.getCustomerID() + "," 
+            + order.isDelivery() + "," 
+            + order.isCompleted() + "," 
+            + order.isDelivery() + ","
+            + isCanceled(order.getOrderID()) 
+            + order.getSubmissionTime()
+            +itemsText);
     }
     writer.close();
 }
@@ -222,24 +235,45 @@ public boolean isCanceled(int orderID)
     Scanner scanner = new Scanner(new File(filepath));
     
     // Clear out old lists so loading a new file starts fresh
-    orders = new GenLL<>();
-    activeOrders = new GenLL<>();
-    canceledOrders = new GenLL<>();
+    GenLL <Order> newOrders = new GenLL<>();
+    GenLL <Order> newActiveOrders = new GenLL<>();
+    GenLL <Order> newCanceledOrders = new GenLL<>();
     
     int maxID = 0;
+    int lineNumber = 0;
 
+    try{
     while (scanner.hasNextLine()) 
     {
         String line = scanner.nextLine();
+        lineNumber++;
+        if(line.isEmpty())
+        {
+            continue;
+        }
+
         String[] parts = line.split(",");
         
-        if (parts.length >= 4) 
+        if (parts.length != 7) 
         {
+            throw new IllegalArgumentException("Line " + lineNumber + " is not valid");
+        }
             int orderID = Integer.parseInt(parts[0]);
             int customerID = Integer.parseInt(parts[1]);
             boolean isDelivery = Boolean.parseBoolean(parts[2]);
             boolean isCompleted = Boolean.parseBoolean(parts[3]);
-            
+            boolean canceled = Boolean.parseBoolean(parts[4]);
+            LocalDateTime time = LocalDateTime.parse(parts[5]);
+
+            String[] pairs = parts[6].split(";");
+            Items[] items = new Items[pairs.length];
+            int[] quantities = new int[pairs.length];
+            for(int i=0; i<pairs.length; i++)
+            {
+                String[] pair = pairs[i].split(":");
+                items[i] = Items.valueOf(pair[0]);
+                quantities[i] = Integer.parseInt(pair[1]);
+            }
             // Track the highest ID so nextOrderID doesn't cause duplicates
             if (orderID > maxID) 
             {
@@ -247,19 +281,30 @@ public boolean isCanceled(int orderID)
             }
             
             // Re-create the order object with loaded data
-            Order loadedOrder = new Order(orderID, customerID, null, null, isCompleted, isDelivery, LocalDateTime.now());
+            Order loadedOrder = new Order(orderID, customerID, items, quantities, isCompleted, isDelivery, LocalDateTime.now());
             
-            orders.add(loadedOrder);
-            if (!isCompleted) 
-            {
-                activeOrders.add(loadedOrder);
+            newOrders.add(loadedOrder);
+            if(canceled){
+                newCanceledOrders.add(loadedOrder);
             }
+            else if (!isCompleted) {
+                newActiveOrders.add(loadedOrder);
+            }
+    }
+}
+        catch(RuntimeException e)
+        {
+            throw new IllegalArgumentException("Orders file problem near line " + lineNumber + ": " + e.getMessage());
         }
-    }
-    scanner.close();
-    
-    // Keep order ID generation synced up
-    nextOrderID = maxID + 1;
-    }
-    
+        finally
+        {
+            scanner.close();
+        }
+
+        orders = newOrders;
+        activeOrders = newActiveOrders;
+        canceledOrders = newCanceledOrders;
+        nextOrderID = maxID + 1;
+}
+
 }

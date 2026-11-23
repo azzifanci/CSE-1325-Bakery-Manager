@@ -3,6 +3,8 @@ import javax.swing.border.TitledBorder;
 import java.awt.Font;
 import java.awt.GridLayout;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.PrintStream;
 
 public class BakeryManagementFE_GUI {
@@ -13,6 +15,7 @@ public class BakeryManagementFE_GUI {
     //Attributes
     private static CustomerManager customerManager = new CustomerManager();
     private static OrderManager orderManager = new OrderManager(customerManager);
+    private static File currentOrderDataFile = new File("orders.txt");
 
     private static JFrame frame;
 
@@ -42,26 +45,28 @@ public class BakeryManagementFE_GUI {
         JButton orderButton = new JButton("Create Order");
         JButton cancelButton = new JButton("Cancel Order");
         JButton updateButton = new JButton("Update Order");
-        //JButton completeButton = new JButton("Mark Order Completed");
         JButton trackButton = new JButton("Track Order");
         JButton priorityButton = new JButton("Order Priority List");
-        //JButton findOrderButton = new JButton("Find Order ID");
-        //JButton findCanceledButton = new JButton("Find Canceled Order");
         JButton customerButton = new JButton("Create Customer");
         JButton sendUpdateButton = new JButton("Send Update");
+
         //JButton findCustomerIDButton = new JButton("Find Customer ID");
+        //JButton completeButton = new JButton("Mark Order Completed");
+        //JButton findOrderButton = new JButton("Find Order ID");
+        //JButton findCanceledButton = new JButton("Find Canceled Order");
 
         buttonPanel.add(orderButton);
         buttonPanel.add(cancelButton);
         buttonPanel.add(updateButton);
-        //buttonPanel.add(completeButton);
-        buttonPanel.add(customerButton);
         buttonPanel.add(trackButton);
         buttonPanel.add(priorityButton);
+        buttonPanel.add(customerButton);
+        buttonPanel.add(sendUpdateButton);
+
+        //buttonPanel.add(findCustomerIDButton);
         //buttonPanel.add(findOrderButton);
         //buttonPanel.add(findCanceledButton);
-        buttonPanel.add(sendUpdateButton);
-        //buttonPanel.add(findCustomerIDButton);
+        //buttonPanel.add(completeButton);
 
         //Menu bar
         JMenuBar menuBar= new JMenuBar();
@@ -73,7 +78,16 @@ public class BakeryManagementFE_GUI {
         viewMenu.addSeparator();
         viewMenu.add(customerDataItem);
 
+        JMenu fileMenu = new JMenu ("File");
+        JMenuItem loadMenuItem = new JMenuItem("Load From File");
+        JMenuItem saveAsMenuItem = new JMenuItem("Save As File");
+        
+        fileMenu.add(loadMenuItem);
+        fileMenu.add(saveAsMenuItem);
+        
         menuBar.add(viewMenu);
+        menuBar.add(fileMenu);
+
         frame.setJMenuBar(menuBar);
 
         // =========================================================
@@ -109,10 +123,13 @@ public class BakeryManagementFE_GUI {
         priorityButton.addActionListener(e-> showPriority());
         orderHistoryItem.addActionListener(e-> showHistory());
         customerDataItem.addActionListener(e-> showDataBase());
+        sendUpdateButton.addActionListener(e-> sendUpdate());
+        loadMenuItem.addActionListener(e -> loadFromFile());
+        saveAsMenuItem.addActionListener(e-> saveAsFile());
+
+        //findCustomerIDButton.addActionListener(e -> findCustomerIDs());
         //findOrderButton.addActionListener(e-> findOrder());
         //findCanceledButton.addActionListener(e-> findCanceled());
-        sendUpdateButton.addActionListener(e-> sendUpdate());
-        //findCustomerIDButton.addActionListener(e -> findCustomerIDs());
 
         frame.setLocationRelativeTo(null);
         frame.setVisible(true);
@@ -294,7 +311,7 @@ public class BakeryManagementFE_GUI {
 
     }
     // =========================================================
-    // FR-6: Track Order (NEED TO FIX)
+    // FR-6: Track Order
     // =========================================================  
     private static void trackOrder()
     {
@@ -491,11 +508,49 @@ public class BakeryManagementFE_GUI {
     // =========================================================
     // LOAD FROM FILE
     // =========================================================  
+    private static void loadFromFile()
+    {
+        JFileChooser chooser = new JFileChooser();
+        int choice = chooser.showOpenDialog(frame);
 
+        if (choice == JFileChooser.APPROVE_OPTION) {
+            File selectedFile = chooser.getSelectedFile();
+
+            try {
+                orderManager.loadFromFile(selectedFile.getAbsolutePath());
+                currentOrderDataFile = selectedFile;
+
+                statusLabel.setText(
+                        "Status: Loaded " + currentOrderDataFile.getName());
+            }
+            catch (FileNotFoundException e) {
+                showError("File not found: " + selectedFile.getName());
+            }
+        }
+    }
     // =========================================================
     // SAVE TO FILE 
     // =========================================================  
+    private static void saveAsFile()
+    {
+        JFileChooser chooser = new JFileChooser();
+        int choice = chooser.showSaveDialog(frame);
 
+        if (choice == JFileChooser.APPROVE_OPTION) {
+            File selectedFile = chooser.getSelectedFile();
+
+            try {
+                orderManager.saveToFile(selectedFile.getAbsolutePath());
+                currentOrderDataFile = selectedFile;
+
+                statusLabel.setText(
+                        "Status: Saved orders to " + currentOrderDataFile.getName());
+            }
+            catch (FileNotFoundException e) {
+                showError("File not found: " + selectedFile.getName());
+            }
+        }
+    }
 
     // =========================================================
     // FR-13: Find Customer ID (HELPER METHOD; MAY REMOVE)
