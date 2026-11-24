@@ -325,9 +325,7 @@ public class BakeryManagementFE_GUI {
             
             //Ask which part of the order should be updated, such as 
             //Order, delivery, and items
-            String choice = askForInput("Update Order", +
-                                        
-            "Enter:\n1 = Complete Order\n2 = Change Delivery\n3 = Change Items");
+            String choice = askForInput("Update Order", "Enter:\n1 = Complete Order\n2 = Change Delivery\n3 = Change Items");
 
             //user clicked cancel
             if(choice == null)
@@ -347,8 +345,7 @@ public class BakeryManagementFE_GUI {
                 //Option 2: Change whether the order is delivery or pickup
             else if(choice.equals("2"))
             {
-                String deliveryInput = askForInput("Delivery Status", +
-                "Enter true for delivery or false for pickup:");
+                String deliveryInput = askForInput("Delivery Status", "Enter true for delivery or false for pickup:");
 
                 //User clicked Cancel
                 if(deliveryInput == null)
@@ -370,8 +367,7 @@ public class BakeryManagementFE_GUI {
             else if(choice.equals("3"))
             {
                 //: lets the user select one item from the menu
-                Items item = (Items) JOptionPane.showInputDialog(frame, +
-                    "Select Item: ", "Update Item", +   
+                Items item = (Items) JOptionPane.showInputDialog(frame, "Select Item: ", "Update Item", +   
                     JOptionPane.QUESTION_MESSAGE, null, Items.values(), Items.values()[0]);
 
                 //Clicked cancel
