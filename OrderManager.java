@@ -18,6 +18,10 @@ public class OrderManager {
         }
         this.customerManager = customerManager;
     }
+
+    // =========================================================
+    // FR-1: Create Order 
+    // =========================================================  
     public Order createOrder(int customerID, Items[] items, int[] quantity, boolean isDelivery) {
         if(customerManager.findCustomerIDs(customerID) == null)
         {
@@ -45,7 +49,9 @@ public class OrderManager {
         return newOrder;
 
     }
-//cancelOrder()
+// =========================================================
+// FR-2: Cancel Order 
+// =========================================================  
 public void cancelOrder(int orderID)
 {
    Order order = findOrderIDs(orderID);
@@ -68,7 +74,9 @@ public void cancelOrder(int orderID)
     canceledOrders.add(order);
 }
 
-//updateOrder()
+// =========================================================
+// FR-3-5: Update Order Methods
+// =========================================================  
 public void updateOrderDelivery(int orderID, boolean newDeliveryStatus)
 {
     Order order = findOrderIDs(orderID);
@@ -129,7 +137,9 @@ public void updateOrderItems(int orderID, Items[] newItems, int[] newQuantities)
     order.setItemsAndQuantities(newItems, newQuantities);
 }
 
-//trackOrder()
+// =========================================================
+// FR-6: Track Order
+// ========================================================= 
 public void trackOrder(int orderID) {
 
     Order order = findOrderIDs(orderID);
@@ -154,7 +164,9 @@ public void trackOrder(int orderID) {
     }
     }
 
-//orderPriority()
+// =========================================================
+// FR-7:  Order Priority
+// =========================================================  
 public void orderPriority() 
 {
     //Since activeOrders displays the orders in progress, we just show the orders in the list to determine priority
@@ -162,11 +174,17 @@ public void orderPriority()
 
     activeOrders.displayAll();
 }
-//orderHistory()
+// =========================================================
+// FR-8: Order History
+// =========================================================  
 public void orderHistory()
 {
     orders.displayAll();
 }
+
+// =========================================================
+// Helper Methods 
+// ========================================================= 
 
 // Searches OrderIDs 
 public Order findOrderIDs(int orderID)
@@ -195,6 +213,11 @@ public boolean isCanceled(int orderID)
 
     return false;
 }
+
+// =========================================================
+// Save + Load to Files 
+// ========================================================= 
+
 //File output save order to file
     public void saveToFile(String filepath) throws FileNotFoundException 
     {
@@ -208,7 +231,7 @@ public boolean isCanceled(int orderID)
         int[] ordersQuantities = order.getQuantity();
 
         String itemsText = "";
-        for(int j=0; i<ordersItems.length; j++)
+        for(int j=0; j<ordersItems.length; j++)
         {
             if(j > 0)
             {
@@ -222,9 +245,8 @@ public boolean isCanceled(int orderID)
             + order.getCustomerID() + "," 
             + order.isDelivery() + "," 
             + order.isCompleted() + "," 
-            + order.isDelivery() + ","
-            + isCanceled(order.getOrderID()) 
-            + order.getSubmissionTime()
+            + isCanceled(order.getOrderID()) + ","
+            + order.getSubmissionTime() + ","
             +itemsText);
     }
     writer.close();
@@ -258,7 +280,7 @@ public boolean isCanceled(int orderID)
         {
             throw new IllegalArgumentException("Line " + lineNumber + " is not valid");
         }
-            int orderID = Integer.parseInt(parts[0]);
+            int orderID = Integer.parseInt(parts[0].trim());
             int customerID = Integer.parseInt(parts[1]);
             boolean isDelivery = Boolean.parseBoolean(parts[2]);
             boolean isCompleted = Boolean.parseBoolean(parts[3]);
@@ -281,7 +303,7 @@ public boolean isCanceled(int orderID)
             }
             
             // Re-create the order object with loaded data
-            Order loadedOrder = new Order(orderID, customerID, items, quantities, isCompleted, isDelivery, LocalDateTime.now());
+            Order loadedOrder = new Order(orderID, customerID, items, quantities, isCompleted, isDelivery, time);
             
             newOrders.add(loadedOrder);
             if(canceled){

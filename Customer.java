@@ -84,7 +84,12 @@ public class Customer
 
     public String toString()
     {
-        return this.customerID+ " "+ this.name+ " "+ this.address+ " "+ this.phoneNumber+ " "+ this.emailAddress;
+        return "CustomerID: " + this.customerID + 
+        "\nName: "+ this.name+ " " + 
+        "\nAddress: " + this.address + 
+        "\nPhone Number: " + this.phoneNumber + 
+        "\nEmail Address:  "+ this.emailAddress + 
+        "\n-----------------------------------------\n";
     }
     public boolean equals(Customer aCustomer)
     {

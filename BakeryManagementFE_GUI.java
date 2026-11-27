@@ -8,14 +8,11 @@ import java.io.FileNotFoundException;
 import java.io.PrintStream;
 
 public class BakeryManagementFE_GUI {
-
-    //POTENTIAL GUI (IDEA)
-    //TOOK FROM MEAGAN GUI + COMBINE
-
     //Attributes
     private static CustomerManager customerManager = new CustomerManager();
     private static OrderManager orderManager = new OrderManager(customerManager);
     private static File currentOrderDataFile = new File("orders.txt");
+    private static File currentCustomerDataFile = new File("customers.txt");
 
     private static JFrame frame;
 
@@ -72,11 +69,11 @@ public class BakeryManagementFE_GUI {
         JMenuBar menuBar= new JMenuBar();
         JMenu viewMenu= new JMenu("View");
         JMenuItem orderHistoryItem= new JMenuItem("Order History");
-        JMenuItem customerDataItem= new JMenuItem("Customer Info");
+        JMenuItem customerHistoryItem= new JMenuItem("Customer History");
 
         viewMenu.add(orderHistoryItem);
         viewMenu.addSeparator();
-        viewMenu.add(customerDataItem);
+        viewMenu.add(customerHistoryItem);
 
         JMenu fileMenu = new JMenu ("File");
         JMenuItem loadMenuItem = new JMenuItem("Load From File");
@@ -122,21 +119,22 @@ public class BakeryManagementFE_GUI {
         trackButton.addActionListener(e-> trackOrder());
         priorityButton.addActionListener(e-> showPriority());
         orderHistoryItem.addActionListener(e-> showHistory());
-        customerDataItem.addActionListener(e-> showDataBase());
+        customerHistoryItem.addActionListener(e-> showCustomerHistory());
         sendUpdateButton.addActionListener(e-> sendUpdate());
         loadMenuItem.addActionListener(e -> loadFromFile());
-        saveAsMenuItem.addActionListener(e-> saveAsFile());
+        saveAsMenuItem.addActionListener(e-> saveCurrentFiles());
 
-        //findCustomerIDButton.addActionListener(e -> findCustomerIDs());
-        //findOrderButton.addActionListener(e-> findOrder());
-        //findCanceledButton.addActionListener(e-> findCanceled());
+        if(currentOrderDataFile.exists() && currentCustomerDataFile.exists())
+        {
+            loadFromFile();
+        }
 
         frame.setLocationRelativeTo(null);
         frame.setVisible(true);
     }
 
     // =========================================================
-    // FR-1: Create Order (ADD CAPABILITY TO HAVE MULTIPLE ITEMS)
+    // FR-1: Create Order 
     // =========================================================  
     private static void openOrderWindow()
     {
@@ -252,6 +250,7 @@ public class BakeryManagementFE_GUI {
                         quantities[i] = addedQuantities.get(i);
                     }
                     Order order = orderManager.createOrder(customerID, items, quantities, deliveryCheckBox.isSelected());
+                    saveCurrentFiles();
 
                     display("Created order: \n" + order);
                     statusLabel.setText("Status: Order " + order.getOrderID() + " created");
@@ -275,7 +274,7 @@ public class BakeryManagementFE_GUI {
     }
 
     // =========================================================
-    // FR-2: Cancel Order (TO-DO)
+    // FR-2: Cancel Order 
     // =========================================================  
     private static void cancelOrder()
     {
@@ -290,6 +289,7 @@ public class BakeryManagementFE_GUI {
         {
             int id = Integer.parseInt(input);
             orderManager.cancelOrder(id);
+            saveCurrentFiles();
             display("Order " + id + " canceled.");
             statusLabel.setText("Status: Order " + id + " canceled");
         }
@@ -337,6 +337,7 @@ public class BakeryManagementFE_GUI {
             if(choice.equals("1"))
             {
                 orderManager.updateOrderCompletion(orderID, true);
+                saveCurrentFiles();
                 display("Order " + orderID + "marked as completed.");
 
                 statusLabel.setText("Status: Order " + orderID + "completed");
@@ -357,6 +358,7 @@ public class BakeryManagementFE_GUI {
                 boolean delivery = Boolean.parseBoolean(deliveryInput);
 
                 orderManager.updateOrderDelivery(orderID, delivery);
+                saveCurrentFiles();
 
                 display("Delivery status updated for Order " + orderID);
 
@@ -392,6 +394,7 @@ public class BakeryManagementFE_GUI {
                 int[] quantities = {quantity};
 
                 orderManager.updateOrderItems(orderID, items, quantities);
+                saveCurrentFiles();
 
                 display("Items updated for Order " + orderID);
 
@@ -434,6 +437,7 @@ public class BakeryManagementFE_GUI {
             int id = Integer.parseInt(input);
             grabMessage();
             orderManager.trackOrder(id);
+            saveCurrentFiles();
             String message = getMessage();
             display(message);
             display("Tracked Order " + id + "\n\n" + message);
@@ -486,21 +490,9 @@ public class BakeryManagementFE_GUI {
             System.setOut(originalOut);
         }
     }
-    private static void showDataBase()
-    {
-        try
-        {
-            grabMessage();
-            //customerManager.customerDataBase();
-            String message= getMessage();
-            display("=============== Customer Information ================\n" + message);
-        }
-        finally {
-            System.setOut(originalOut);
-        }
-    }
+
     // =========================================================
-    // FR-11: Create Customer
+    // FR-9: Create Customer
     // =========================================================  
     private static void openCustomerWindow(JTextField idFieldToFill)
     {
@@ -555,6 +547,7 @@ public class BakeryManagementFE_GUI {
                         String address = addressField.getText();
 
                         Customer c = customerManager.createCustomer(name, email, phoneNumber, address);
+                        saveCurrentFiles();
 
                         if(idFieldToFill != null)
                         {
@@ -579,7 +572,7 @@ public class BakeryManagementFE_GUI {
 
     }
     // =========================================================
-    // FR-12: Send Update
+    // FR-10: Send Update
     // =========================================================  
     private static void sendUpdate()
     {
@@ -617,55 +610,66 @@ public class BakeryManagementFE_GUI {
     // =========================================================  
     private static void loadFromFile()
     {
-        JFileChooser chooser = new JFileChooser();
-        int choice = chooser.showOpenDialog(frame);
-
-        if (choice == JFileChooser.APPROVE_OPTION) {
-            File selectedFile = chooser.getSelectedFile();
-
             try {
-                orderManager.loadFromFile(selectedFile.getAbsolutePath());
-                currentOrderDataFile = selectedFile;
-
-                statusLabel.setText(
-                        "Status: Loaded " + currentOrderDataFile.getName());
+                orderManager.loadFromFile(currentOrderDataFile.getAbsolutePath());
             }
             catch (FileNotFoundException e) {
-                showError("File not found: " + selectedFile.getName());
+                showError("File not found: " + currentOrderDataFile.getName());
+                return;
             }
-        }
+            catch(RuntimeException e)
+            {
+                showError("Orders could not be loaded: " + e.getMessage());
+                return;
+            }
+        
+            try {
+                customerManager.loadFromFile(currentCustomerDataFile.getAbsolutePath());
+            }
+            catch (FileNotFoundException e) {
+                showError("File not found: " + currentCustomerDataFile.getName());
+            }
+            catch(RuntimeException e)
+            {
+                showError("Customers could not be loaded: " + e.getMessage());
+            }
     }
     // =========================================================
     // SAVE TO FILE 
     // =========================================================  
-    private static void saveAsFile()
+    
+    private static boolean saveCurrentFiles()
     {
-        JFileChooser chooser = new JFileChooser();
-        int choice = chooser.showSaveDialog(frame);
-
-        if (choice == JFileChooser.APPROVE_OPTION) {
-            File selectedFile = chooser.getSelectedFile();
-
-            try {
-                orderManager.saveToFile(selectedFile.getAbsolutePath());
-                currentOrderDataFile = selectedFile;
-
-                statusLabel.setText(
-                        "Status: Saved orders to " + currentOrderDataFile.getName());
-            }
-            catch (FileNotFoundException e) {
-                showError("File not found: " + selectedFile.getName());
-            }
+        try{
+            orderManager.saveToFile(currentOrderDataFile.getAbsolutePath());
+            customerManager.saveToFile(currentCustomerDataFile.getAbsolutePath());
+            statusLabel.setText("Status: Saved " + currentOrderDataFile.getName() + " and " + currentCustomerDataFile.getName());
+            return true;
+        }
+        catch(FileNotFoundException e)
+        {
+            showError("Could not save: " + e.getMessage());
+            return false;
         }
     }
 
     // =========================================================
-    // FR-13: Find Customer ID (HELPER METHOD; MAY REMOVE)
+    // FR-11: Customer History
     // =========================================================  
-    private static void findCustomerIDs()
+    private static void showCustomerHistory()
     {
-
+        try
+        {
+            grabMessage();
+            customerManager.customerHistory();
+            String message= getMessage();
+            display("=============== Customer Information ================\n" + message);
+        }
+        finally {
+            System.setOut(originalOut);
+        }
     }
+    
 
     // =========================================================
     // FR-9: Find Order ID (HELPER METHOD; MAY REMOVE)
