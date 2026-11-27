@@ -89,14 +89,6 @@ public class Customer
         "\nAddress: " + this.address + 
         "\nPhone Number: " + this.phoneNumber + 
         "\nEmail Address:  "+ this.emailAddress + 
-        "\n-----------------------------------------\n";
-    }
-    public boolean equals(Customer aCustomer)
-    {
-        return aCustomer !=null && this.customerID== aCustomer.getCustomerID() &&
-                this.name.equalsIgnoreCase(aCustomer.getName()) &&
-                this.address.equals(aCustomer.getAddress()) &&
-                this.phoneNumber.equals(aCustomer.getPhoneNumber()) &&
-                this.emailAddress.equals(aCustomer.getEmailAddress());
+        "\n------------------------------------------------------------------------------\n";
     }
 }

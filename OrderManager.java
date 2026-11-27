@@ -9,7 +9,7 @@ public class OrderManager {
     private GenLL <Order> orders = new GenLL <>();
     private GenLL <Order> activeOrders = new GenLL <>();
     private GenLL <Order> canceledOrders = new GenLL <>();
-    private int nextOrderID = 100;
+    private static int nextOrderID = 100;
 
     public OrderManager(CustomerManager customerManager) {
         if(customerManager == null)
@@ -84,6 +84,10 @@ public void updateOrderDelivery(int orderID, boolean newDeliveryStatus)
     {
         throw new IllegalArgumentException("Order " + orderID + "not found.");
     }
+    if(order.isCompleted())
+    {
+        throw new IllegalArgumentException("Order has been completed. It cannot be updated.");
+    }
 
     //Displays message whether order is canceled 
     if(isCanceled(orderID))
@@ -128,6 +132,11 @@ public void updateOrderItems(int orderID, Items[] newItems, int[] newQuantities)
         throw new IllegalArgumentException("Order " + orderID + "not found.");
     }
 
+    if(order.isCompleted())
+    {
+        throw new IllegalArgumentException("Order has been completed. It cannot be updated.");
+    }
+
     //Displays message whether order is canceled 
     if(isCanceled(orderID))
     {
@@ -150,19 +159,62 @@ public void trackOrder(int orderID) {
         throw new IllegalArgumentException("Order " + orderID + "not found.");
     }
 
-    //Displays message whether order is completed or not
-    if(order.isCompleted()) {
-        System.out.println("Order " + orderID + " is completed.");
-        } else {
-            System.out.println("Order " + orderID + " is not completed.");
-        }
+    Customer customer = customerManager.findCustomerIDs(order.getCustomerID());
 
-    //Displays message whether order is canceled 
+    if(customer == null)
+    {
+        throw new IllegalArgumentException("Customer not found");
+    }
+
+    System.out.println("==================== Order Tracking =====================\n");
+    System.out.println("Order ID: " + order.getOrderID());
+    System.out.println("Customer: " + customer.getName());
+    System.out.println();
+
+    String deliveryMessage = "";
+    if(order.isDelivery())
+    {
+        deliveryMessage = deliveryMessage + "Delivery";
+    }
+    else{
+        deliveryMessage = deliveryMessage + "Pickup";
+    }
+    System.out.println("Delivery Method: " + deliveryMessage);
+    
+     //Displays message whether order is canceled 
     if(isCanceled(orderID))
     {
-        System.out.println("Order " + orderID + " has been canceled.");
+        System.out.println("Status: Order has been canceled.");
     }
+
+    int position = -1;
+    for(int i=0; i<activeOrders.getSize(); i++)
+    {
+        Order currentOrder = activeOrders.get(i);
+
+        if(currentOrder.getOrderID() == orderID)
+        {
+            position = i + 1;
+            break;
+        }
     }
+
+    //Displays message whether order is completed or not
+    if(order.isCompleted()) {
+        System.out.println("Status: Order has been canceled.");
+        } 
+    else{
+            System.out.println("Status: Order is still being prepared");
+            if(position != -1)
+            {
+                System.out.println("Priority List Position: " + position);
+            }
+            else
+            {
+                System.out.println("Priority List Position: Not currently in the list");
+            }
+        }
+}
 
 // =========================================================
 // FR-7:  Order Priority
@@ -214,6 +266,51 @@ public boolean isCanceled(int orderID)
     return false;
 }
 
+//Checks if there is duplicate orders 
+
+public Order findDuplicateOrder(int customerID, Items[] items, int[] quantity, boolean isDelivery)
+{
+    for(int i = 0; i < activeOrders.getSize(); i++)
+    {
+        Order existing = activeOrders.get(i);
+
+        if(existing.getCustomerID() != customerID || existing.isDelivery() != isDelivery)
+        {
+            continue;
+        }
+
+        Items[] existingItems = existing.getItems();
+        int[] existingQuantities = existing.getQuantity();
+
+        if(existingItems.length != items.length)
+        {
+            continue;
+        }
+
+        boolean equal = true;
+        for(int j = 0; j < items.length; j++)
+        {
+            boolean found = false;
+            for (int k = 0; k<existingItems.length; k++)
+            {
+                if(existingItems[k] == items[j] && existingQuantities[k] == quantity[j])
+                {
+                    found = true;
+                }
+            }
+            if(!found)
+            {
+                equal = false;
+            }
+        }
+
+        if(equal){
+            return existing;
+        }
+    }
+    return null; 
+    
+}
 // =========================================================
 // Save + Load to Files 
 // ========================================================= 
@@ -261,7 +358,7 @@ public boolean isCanceled(int orderID)
     GenLL <Order> newActiveOrders = new GenLL<>();
     GenLL <Order> newCanceledOrders = new GenLL<>();
     
-    int maxID = 0;
+    int maxID = 99;
     int lineNumber = 0;
 
     try{
@@ -281,7 +378,7 @@ public boolean isCanceled(int orderID)
             throw new IllegalArgumentException("Line " + lineNumber + " is not valid");
         }
             int orderID = Integer.parseInt(parts[0].trim());
-            int customerID = Integer.parseInt(parts[1]);
+            int customerID = Integer.parseInt(parts[1].trim());
             boolean isDelivery = Boolean.parseBoolean(parts[2]);
             boolean isCompleted = Boolean.parseBoolean(parts[3]);
             boolean canceled = Boolean.parseBoolean(parts[4]);
@@ -326,7 +423,7 @@ public boolean isCanceled(int orderID)
         orders = newOrders;
         activeOrders = newActiveOrders;
         canceledOrders = newCanceledOrders;
-        nextOrderID = maxID + 1;
+        nextOrderID = Math.max(100, maxID + 1);
 }
 
 }

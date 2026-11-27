@@ -1,2 +1,2 @@
-100 |   jac   |   def   |   123   |   abc
-101 |  Jacquelyn  |  123 Apple St.  |  1234567890  |  jb@gmail.com
+100 |        Jacquelyn        |        jb@gmail.com        |        8171234567        |        123 Apple Street
+101 |        Dylan        |        dt@yahoo.com        |        2141234567        |        123 UTA Drive

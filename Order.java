@@ -112,6 +112,6 @@ public class Order {
                 "\nDelivery Status: " + isDelivery +
                 "\nCompleted Status : " + isCompleted +
                 "\nSubmission Time: "  + submissionTime +
-                "\n-----------------------------------------\n";
+                "\n------------------------------------------------------------------------------\n";
     }
 }

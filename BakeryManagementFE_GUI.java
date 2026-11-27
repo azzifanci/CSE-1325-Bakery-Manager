@@ -47,11 +47,6 @@ public class BakeryManagementFE_GUI {
         JButton customerButton = new JButton("Create Customer");
         JButton sendUpdateButton = new JButton("Send Update");
 
-        //JButton findCustomerIDButton = new JButton("Find Customer ID");
-        //JButton completeButton = new JButton("Mark Order Completed");
-        //JButton findOrderButton = new JButton("Find Order ID");
-        //JButton findCanceledButton = new JButton("Find Canceled Order");
-
         buttonPanel.add(orderButton);
         buttonPanel.add(cancelButton);
         buttonPanel.add(updateButton);
@@ -59,11 +54,6 @@ public class BakeryManagementFE_GUI {
         buttonPanel.add(priorityButton);
         buttonPanel.add(customerButton);
         buttonPanel.add(sendUpdateButton);
-
-        //buttonPanel.add(findCustomerIDButton);
-        //buttonPanel.add(findOrderButton);
-        //buttonPanel.add(findCanceledButton);
-        //buttonPanel.add(completeButton);
 
         //Menu bar
         JMenuBar menuBar= new JMenuBar();
@@ -249,6 +239,20 @@ public class BakeryManagementFE_GUI {
                         items[i] = addedItems.get(i);
                         quantities[i] = addedQuantities.get(i);
                     }
+
+                    Order duplicate = orderManager.findDuplicateOrder(customerID, items, quantities, deliveryCheckBox.isSelected());
+
+                    if(duplicate != null)
+                    {
+                        Object[] options = {"Create Anyway", "Cancel"};
+                        int answer = JOptionPane.showOptionDialog(dialog, "This customer already has an identical active order: \n\n " 
+                                        + duplicate + "\n\nCreate another one anyway?", "Possible Duplicate Order", JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null, options, options[1]);
+
+                        if(answer != 0)
+                        {
+                            return;
+                        }
+                    }
                     Order order = orderManager.createOrder(customerID, items, quantities, deliveryCheckBox.isSelected());
                     saveCurrentFiles();
 
@@ -368,36 +372,84 @@ public class BakeryManagementFE_GUI {
             //Option 3: Replace the current order items
             else if(choice.equals("3"))
             {
-                //: lets the user select one item from the menu
-                Items item = (Items) JOptionPane.showInputDialog(frame, "Select Item: ", "Update Item", +   
-                    JOptionPane.QUESTION_MESSAGE, null, Items.values(), Items.values()[0]);
+                Order order = orderManager.findOrderIDs(orderID);
+                Items[] allItems = Items.values();
+                int[] newQuantities = new int[allItems.length];
+                Items[] currentItems = order.getItems();
+                int[] currentQuantities = order.getQuantity();
 
-                //Clicked cancel
+                for(int i = 0; i < currentItems.length; i++)
+                {
+                    newQuantities[currentItems[i].ordinal()] = currentQuantities[i];
+                }
+
+                boolean another = true;
+                while(another)
+                {
+                    String summary = "";
+                    for(int i = 0; i < allItems.length; i++)
+                    {
+                        if(newQuantities[i] > 0){
+                            summary = summary + allItems[i] + " - " + newQuantities[i] + "\n";
+                        }
+                    }
+
+                Items item = (Items) JOptionPane.showInputDialog(frame, "Current items: \n" + summary + "\nSelect item to change: ", "Update Item", JOptionPane.QUESTION_MESSAGE, null, allItems, allItems[0]);
+
                 if(item == null)
                 {
                     return;
                 }
-
+                
                 //Ask how many of the item should be ordered
-                String quantityInput = askForInput("Quantity", "Enter quantity: ");
+                String quantityInput = askForInput("Quantity", "New quantity for " + item + " (0 removes it)");
 
                 //clicked cancel
                 if(quantityInput == null)
                 {
                     return;
                 }
+            
 
                 int quantity = Integer.parseInt(quantityInput);
+                if(quantity < 0)
+                {
+                    showError("Quantity cannot be negative");
+                    continue;
+                }
 
-                //Backend method requires arrays for items and quantities
-                Items[] items = {item};
-                int[] quantities = {quantity};
+                newQuantities[item.ordinal()] = quantity;
+
+                int answer = JOptionPane.showConfirmDialog(frame, "Update another item?", "Update Item", JOptionPane.YES_NO_OPTION);
+                another = (answer == JOptionPane.YES_OPTION);
+
+                }
+
+                int count = 0;
+                for(int i = 0; i < allItems.length; i++)
+                {
+                    if(newQuantities[i] > 0)
+                    {
+                        count++;
+                    }
+                }
+
+                Items[] items = new Items[count];
+                int[] quantities = new int[count];
+                int index = 0;
+                for(int i = 0; i< allItems.length; i++)
+                {
+                    if(newQuantities[i] > 0){
+                        items[index] = allItems[i];
+                        quantities[index] = newQuantities[i];
+                        index++;
+                    }
+                }
 
                 orderManager.updateOrderItems(orderID, items, quantities);
                 saveCurrentFiles();
 
-                display("Items updated for Order " + orderID);
-
+                display("Items updated for Order " + orderID + ":\n" + orderManager.findOrderIDs(orderID));
                 statusLabel.setText("Status: Items updated for Order " + orderID);
             }
 
@@ -440,7 +492,6 @@ public class BakeryManagementFE_GUI {
             saveCurrentFiles();
             String message = getMessage();
             display(message);
-            display("Tracked Order " + id + "\n\n" + message);
             statusLabel.setText("Status: Tracked Order " + id);
         }
         catch(NumberFormatException e)
@@ -465,7 +516,7 @@ public class BakeryManagementFE_GUI {
             grabMessage();
             orderManager.orderPriority();
             String message = getMessage();
-            display("=============== Order Priority ================\n" + "Priority from High to Low\n\n" + message);
+            display("======================= Order Priority ========================\n" + "Priority from High to Low\n\n" + message);
             statusLabel.setText("Status: Showing order priority list");
         }
         finally
@@ -482,7 +533,7 @@ public class BakeryManagementFE_GUI {
             grabMessage();
             orderManager.orderHistory();
             String message = getMessage();
-            display("=============== Order History ================\n" + message);
+            display("=======================  Order History  ========================\n" + message);
             statusLabel.setText("Status: Showing order history");
         }
         finally
@@ -576,7 +627,7 @@ public class BakeryManagementFE_GUI {
     // =========================================================  
     private static void sendUpdate()
     {
-        String input = askForInput("Track order", "Enter order ID: ");
+        String input = askForInput("Send Update", "Enter order ID: ");
 
         if(input == null)
         {
@@ -590,7 +641,6 @@ public class BakeryManagementFE_GUI {
             grabMessage();
             customerManager.sendUpdate(order);
             display(getMessage());
-            display("Tracked Order " + id);
             statusLabel.setText("Status: Update sent for order " + id);
         }
         catch(NumberFormatException e)
@@ -663,29 +713,13 @@ public class BakeryManagementFE_GUI {
             grabMessage();
             customerManager.customerHistory();
             String message= getMessage();
-            display("=============== Customer Information ================\n" + message);
+            display("====================== Customer History =======================\n" + message);
         }
         finally {
             System.setOut(originalOut);
         }
     }
     
-
-    // =========================================================
-    // FR-9: Find Order ID (HELPER METHOD; MAY REMOVE)
-    // =========================================================  
-    private static void findOrder()
-    {
-
-    }
-    // =========================================================
-    // FR-10: Find Canceled Order (HELPER METHOD; MAY REMOVE)
-    // =========================================================  
-    private static void findCanceled()
-    {
-
-    }
-
     // =========================================================
     // Front End Helpers
     // ========================================================= 

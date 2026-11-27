@@ -8,12 +8,12 @@ public class CustomerManager
 {
     private GenLL <Customer> customers = new GenLL <> ();
     public CustomerManager(){customers= new GenLL<>();}
-    private int nextCustomerID = 100;
+    private static int nextCustomerID = 100;
 
     // =========================================================
     // FR-9: Create Customer
     // ========================================================= 
-    public Customer createCustomer(String name, String emailAddress, String phoneNumber, String address)
+    public Customer createCustomer(String name, String address, String phoneNumber, String emailAddress)
     {
         //Exception when field is null or contains 0 characters 
         if(name == null || name.isBlank())
@@ -65,7 +65,7 @@ public class CustomerManager
         //Links order's customerID to actual customer 
         Customer customer = findCustomerIDs(order.getCustomerID());
 
-         if(customer == null)
+        if(customer == null)
         {
             throw new IllegalArgumentException("Customer not found.");
         }
@@ -78,13 +78,16 @@ public class CustomerManager
         {
             if(order.isDelivery())
             {
-                System.out.println(message + "your order is being delivered."); 
+                System.out.println(message + " your order #" + order.getOrderID() + " has been completed and is ready for delivery."); 
             }
             else
-            {
-                System.out.println(message + "your order is awaiting pick up.");
+            { 
+                System.out.println(message + " your order #" + order.getOrderID() + " has been completed and is awaiting to be picked up.");
             }
         }
+    else{
+        System.out.println(message + " your order #" + order.getOrderID() + " is currently being prepared.");
+    }
     }
 
     // =========================================================
@@ -142,7 +145,7 @@ public class CustomerManager
     // Clear out old lists so loading a new file starts fresh
     GenLL <Customer> newCustomers = new GenLL<>();
     
-    int maxID = 0;
+    int maxID = 99;
     int lineNumber = 0;
 
     try{
@@ -161,7 +164,7 @@ public class CustomerManager
         {
             throw new IllegalArgumentException("Line " + lineNumber + " is not valid");
         }
-            int customerID = Integer.parseInt(parts[0].replaceAll("[^0-9]", ""));
+            int customerID = Integer.parseInt(parts[0].trim());
             // Track the highest ID so nextOrderID doesn't cause duplicates
             if (customerID > maxID) 
             {
@@ -183,7 +186,7 @@ public class CustomerManager
         }
 
         customers = newCustomers;
-        nextCustomerID = maxID + 1;
+        nextCustomerID = Math.max(100, maxID + 1);
 }
 
 }
